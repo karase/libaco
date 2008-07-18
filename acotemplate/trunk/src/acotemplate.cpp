@@ -7,7 +7,6 @@
 #include <tclap/CmdLine.h>
 #include <acotemplate/template.h>
 
-static std::string filepath;
 static unsigned int ants = 10;
 static unsigned int iterations = UINT_MAX;
 static double alpha = 1.0;
