@@ -12,5 +12,8 @@ build/graph.o: src/graph.cpp include/libaco/graph.h
 build/util.o: src/util.cpp include/libaco/util.h
 	g++ -ansi -I ./include -c src/util.cpp -o build/util.o
 
-clean: .
+doc: src/ include/libaco/
+	doxygen
+
+clean:
 	rm build/*.o lib/libaco.a

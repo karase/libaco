@@ -1,0 +1,72 @@
+\hypertarget{classOptimizationProblem}{
+\section{OptimizationProblem Class Reference}
+\label{classOptimizationProblem}\index{OptimizationProblem@{OptimizationProblem}}
+}
+Interface a client of libaco needs to implement.  
+
+
+{\tt \#include $<$ants.h$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classOptimizationProblem_c415a4d1350cd3580f2fcf26f7f6196c}{
+virtual unsigned int \hyperlink{classOptimizationProblem_c415a4d1350cd3580f2fcf26f7f6196c}{get\_\-max\_\-tour\_\-size} ()=0}
+\label{classOptimizationProblem_c415a4d1350cd3580f2fcf26f7f6196c}
+
+\begin{CompactList}\small\item\em Returns the maximum number of nodes in a tour. \item\end{CompactList}\item 
+\hypertarget{classOptimizationProblem_3f2b6672193e9b543f9a3419b6a516e8}{
+virtual unsigned int \hyperlink{classOptimizationProblem_3f2b6672193e9b543f9a3419b6a516e8}{number\_\-of\_\-vertices} ()=0}
+\label{classOptimizationProblem_3f2b6672193e9b543f9a3419b6a516e8}
+
+\begin{CompactList}\small\item\em Returns the number of vertices in the construction graph. \item\end{CompactList}\item 
+\hypertarget{classOptimizationProblem_9d90c97f690e8987a152b37d0c51e744}{
+virtual std::map$<$ unsigned int, double $>$ \hyperlink{classOptimizationProblem_9d90c97f690e8987a152b37d0c51e744}{get\_\-feasible\_\-start\_\-vertices} ()=0}
+\label{classOptimizationProblem_9d90c97f690e8987a152b37d0c51e744}
+
+\begin{CompactList}\small\item\em Returns a map with the ids of all feasible start vertices as keys and some heuristic value. \item\end{CompactList}\item 
+\hypertarget{classOptimizationProblem_582a4ef61a491e2741060c2f83c3fc2e}{
+virtual std::map$<$ unsigned int, double $>$ \hyperlink{classOptimizationProblem_582a4ef61a491e2741060c2f83c3fc2e}{get\_\-feasible\_\-neighbours} (unsigned int vertex)=0}
+\label{classOptimizationProblem_582a4ef61a491e2741060c2f83c3fc2e}
+
+\begin{CompactList}\small\item\em Returns a map with the ids of all feasible neighbour vertices of vertex as keys and some heuristic value. \item\end{CompactList}\item 
+\hypertarget{classOptimizationProblem_7e89680c220a5b45c716127145227034}{
+virtual double \hyperlink{classOptimizationProblem_7e89680c220a5b45c716127145227034}{eval\_\-tour} (const std::vector$<$ unsigned int $>$ \&tour)=0}
+\label{classOptimizationProblem_7e89680c220a5b45c716127145227034}
+
+\begin{CompactList}\small\item\em Returns the quality of a given tour. \item\end{CompactList}\item 
+\hypertarget{classOptimizationProblem_6e6c867caca96eb95606006c4e508ac9}{
+virtual double \hyperlink{classOptimizationProblem_6e6c867caca96eb95606006c4e508ac9}{pheromone\_\-update} (unsigned int v, double tour\_\-length)=0}
+\label{classOptimizationProblem_6e6c867caca96eb95606006c4e508ac9}
+
+\begin{CompactList}\small\item\em Returns the amount of pheromone that shall be deposited onto the edge pointing to v. \item\end{CompactList}\item 
+\hypertarget{classOptimizationProblem_3df069cbd0e948368a5696b21892cb7a}{
+virtual void \hyperlink{classOptimizationProblem_3df069cbd0e948368a5696b21892cb7a}{added\_\-vertex\_\-to\_\-tour} (unsigned int vertex)=0}
+\label{classOptimizationProblem_3df069cbd0e948368a5696b21892cb7a}
+
+\begin{CompactList}\small\item\em Callback that notifies the client code that the current ant has added this vertex to it's tour. \item\end{CompactList}\item 
+\hypertarget{classOptimizationProblem_41c614f3cb6cc0d96fa34adf129ff47f}{
+virtual bool \hyperlink{classOptimizationProblem_41c614f3cb6cc0d96fa34adf129ff47f}{is\_\-tour\_\-complete} (const std::vector$<$ unsigned int $>$ \&tour)=0}
+\label{classOptimizationProblem_41c614f3cb6cc0d96fa34adf129ff47f}
+
+\begin{CompactList}\small\item\em Determines whether the supplied tour is complete. \item\end{CompactList}\item 
+\hypertarget{classOptimizationProblem_74c083b6b88c801052af5dbfa06644e0}{
+virtual std::vector$<$ unsigned int $>$ \hyperlink{classOptimizationProblem_74c083b6b88c801052af5dbfa06644e0}{apply\_\-local\_\-search} (const std::vector$<$ unsigned int $>$ \&tour)}
+\label{classOptimizationProblem_74c083b6b88c801052af5dbfa06644e0}
+
+\begin{CompactList}\small\item\em Gives the client code the oppurtunity to improve the tour after construction by applying some local search. \item\end{CompactList}\item 
+\hypertarget{classOptimizationProblem_78e513c392ac1c5489b598b275cfef26}{
+virtual void \hyperlink{classOptimizationProblem_78e513c392ac1c5489b598b275cfef26}{cleanup} ()=0}
+\label{classOptimizationProblem_78e513c392ac1c5489b598b275cfef26}
+
+\begin{CompactList}\small\item\em Here go eventually necessary cleanup actions between two tour constructions. \item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Interface a client of libaco needs to implement. 
+
+Interface to the problem-specific logic a client must supply. 
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+include/libaco/ants.h\end{CompactItemize}

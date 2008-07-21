@@ -6,5 +6,8 @@ lib/liblocalsearch.a: build/localsearch.o
 build/localsearch.o: src/localsearch.cpp include/liblocalsearch/localsearch.h
 	g++ -ansi -I ./include -c src/localsearch.cpp -o build/localsearch.o
 
+doc: ./src/ ./include/liblocalsearch/
+	doxygen
+
 clean: .
 	rm build/*.o lib/liblocalsearch.a
