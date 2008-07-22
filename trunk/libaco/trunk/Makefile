@@ -1,7 +1,7 @@
-all: lib/libaco.a
+all: build/libaco.a
 
-lib/libaco.a: build/ants.o build/graph.o build/util.o
-	ar rcs lib/libaco.a build/*.o
+build/libaco.a: build/ants.o build/graph.o build/util.o
+	ar rcs build/libaco.a build/*.o
 
 build/ants.o: src/ants.cpp include/libaco/ants.h include/libaco/graph.h include/libaco/util.h
 	g++ -ansi -I ./include -c src/ants.cpp -o build/ants.o
@@ -16,4 +16,4 @@ doc: src/ include/libaco/
 	doxygen
 
 clean:
-	rm build/*.o lib/libaco.a
+	rm build/*.o build/libaco.a
