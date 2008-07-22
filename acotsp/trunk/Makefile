@@ -1,8 +1,8 @@
 all: bin/acotsp
 
 bin/acotsp: libaco liblocalsearch build/acotsp.o build/tsp.o
-	cp ../../libaco/trunk/lib/libaco.a lib/
-	cp ../../liblocalsearch/trunk/lib/liblocalsearch.a lib/
+	cp ../../libaco/trunk/build/libaco.a lib/
+	cp ../../liblocalsearch/trunk/build/liblocalsearch.a lib/
 	g++ -static build/acotsp.o build/tsp.o -L./lib/ -laco -o bin/acotsp
 
 build/acotsp.o: src/acotsp.cpp include/acotsp/tsp.h include/libaco/ants.h include/libaco/graph.h include/libaco/util.h
