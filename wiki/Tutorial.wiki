@@ -1,7 +1,7 @@
 #summary Solving the Travelling Salesman Problem with libaco.
 #labels Featured
 
-= Building your project with the GNU C Compiler =
+= Building your project with the GNU C++ Compiler =
 
 == Project template ==
 
