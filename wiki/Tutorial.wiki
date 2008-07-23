@@ -5,6 +5,14 @@
 
 == Template Project ==
 
-= Defining the problem =
+= Getting started =
 
-= Creating and configuring the ant colony =
+{{{
+AntColonyConfiguration config;
+SimpleAntColony colony(new TspProblem(), config);
+colony.run(); // run one iteration
+std::vector<unsigned int> tour = colony.get_best_tour();
+double length = colony.get_best_tour_length();
+}}}
+
+= Defining the problem =
