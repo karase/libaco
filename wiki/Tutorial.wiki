@@ -3,7 +3,7 @@
 
 = Building your project with the GNU C Compiler =
 
-== Template Project ==
+== Project template ==
 
 = Getting started =
 
@@ -16,3 +16,27 @@ double length = colony.get_best_tour_length();
 }}}
 
 = Defining the problem =
+
+{{{
+class TspProblem : public OptimizationProblem {
+  private:
+    std::map<unsigned int,bool> visited_vertices_;
+    Matrix<unsigned int> *distances_;
+    unsigned int start_vertex_;
+  public:
+    TspProblem(Matrix<unsigned int> *distances);
+    ~TspProblem();
+    unsigned int get_max_tour_size();
+    unsigned int number_of_vertices();
+    std::map<unsigned int,double> get_feasible_start_vertices();
+    std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex);
+    double eval_tour(const std::vector<unsigned int> &tour);
+    double pheromone_update(unsigned int v, double tour_length);
+    void added_vertex_to_tour(unsigned int vertex);
+    bool is_tour_complete(const std::vector<unsigned int> &tour);
+    std::vector<unsigned int> apply_local_search(const std::vector<unsigned int> &tour);
+    void cleanup();
+};
+}}}
+
+= The command line client =
