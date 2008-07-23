@@ -1,4 +1,10 @@
 #summary Solving the Travelling Salesman Problem with libaco.
 #labels Featured
 
-= Introduction =
+= Building your project with the GNU C Compiler =
+
+== Template Project ==
+
+= Defining the problem =
+
+= Creating and configuring the ant colony =
