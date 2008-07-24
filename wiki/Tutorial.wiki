@@ -3,6 +3,25 @@
 
 = Project template =
 
+To get started quickly you can download the project template which already includes the library and a Makefile that links your code with the library statically.
+
+To build the project execute:
+{{{
+make
+}}}
+
+To delete all build artifacts execute:
+{{{
+make clean
+}}}
+
+These are the files you will need to edit:
+{{{
+src/acotemplate.cpp
+src/template.cpp
+include/acotemplate/template.h
+}}}
+
 = Getting started =
 
 {{{
