@@ -31,6 +31,8 @@ static double maxmin_a = 2.0;
 static double acs_q0 = 0.5;
 static double acs_epsilon = 0.1;
 
+static std::string filepath;
+
 static AntColony<Ant> *colony;
 
 static void parse_options(int argc, char *argv[]) {

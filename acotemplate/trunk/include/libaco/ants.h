@@ -5,6 +5,67 @@
 #include <cmath>
 #include "graph.h"
 
+/// \mainpage libaco
+///
+/// \section intro_sec Introduction
+///
+///libaco is a library which can be used for solving combinatorial optimization problems using the Ant Colony Optimization (ACO) meta-heuristic. The library implements the following variants of ACO algorithms:
+///
+/// - Simple Ant System
+/// - Elitist Ant System
+/// - Rank-Based Ant System
+/// - Max-Min Ant System
+/// - Ant Colony System 
+///
+///For detailed descriptions of these algorithms take a look at the book "Ant Colony Optimization" by Marco Dorigo and Thomas Stuetzle.
+///
+///  All this was implemented as part of my Master's Thesis at the Technical University of Vienna I'm currently working on with the prospective title 'Ant Colony Optimization for Tree and Hypertree Decomposition'. 
+///
+/// \section getting_started_sec Getting Started
+///
+/// If you don't have any clue how ant algorithms work I recommend you to read something on the topic first.
+///
+/// The only interface between libaco and your client code is defined by the virtual class OptimizationProblem. You need to inherit from this class and implement all pure virtual methods.
+///
+/// \code
+/// class MyProblem : public OptimizationProblem {
+///   public:
+///     unsigned int get_max_tour_size() { /* TODO: implement */ }
+///     unsigned int number_of_vertices() { /* TODO: implement */ }
+///     std::map<unsigned int,double> get_feasible_start_vertices() { /* TODO: implement */ }
+///     std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex) { /* TODO: implement */ }
+///     double eval_tour(const std::vector<unsigned int> &tour) { /* TODO: implement */ }
+///     double pheromone_update(unsigned int v, double tour_length) { /* TODO: implement */ }
+///     void added_vertex_to_tour(unsigned int vertex) { /* TODO: implement */ }
+///     bool is_tour_complete(const std::vector<unsigned int> &tour) { /* TODO: implement */ }
+///     std::vector<unsigned int> apply_local_search(const std::vector<unsigned int> &tour) { return tour; }
+///     void cleanup() { /* TODO: implement */ };
+/// }
+/// \endcode
+///
+/// After you have implemented your problem-specific logic all you need to do is to instantiate an ant colony and supply it with a corresponding configuration object and your OptimizationProblem.
+///
+/// \code
+/// AntColonyConfiguration config;
+/// SimpleAntColony colony(new MyProblem(), config);
+/// colony.run(); // run one iteration
+/// std::vector<unsigned int> tour = colony.get_best_tour();
+/// double length = colony.get_best_tour_length();
+/// \endcode
+///
+/// For this example we have used a SimpleAntColony but we also could have used one of the following other variants:
+///
+/// - ElitistAntColony (together with an ElitistAntColonyConfiguration)
+/// - RankBasedAntColony (together with an RankBasedAntColonyConfiguration)
+/// - MaxMinAntColony (together with an MaxMinAntColonyConfiguration)
+/// - ACSAntColony (together with an ACSAntColonyConfiguration)
+///
+/// For a far more detailed explanation on how to make use of this library take a look at the tutorial at:
+///
+/// http://code.google.com/p/libaco/wiki/Tutorial
+///
+///It shows step-by-step how to implement a program with libaco for finding solutions to arbitrary instances of the Travelling Salesman Problem.
+
 class PheromoneMatrix : protected Matrix<double> {
   protected:
     double evaporation_rate_;
@@ -61,17 +122,30 @@ class Tour {
     bool operator<(const Tour &t);
 };
 
+/// Interface a client of libaco needs to implement.
+/// 
+/// Interface to the problem-specific logic a client must supply.
 class OptimizationProblem {
   public:
+    /// Returns the maximum number of nodes in a tour.
     virtual unsigned int get_max_tour_size() = 0;
+    /// Returns the number of vertices in the construction graph.
     virtual unsigned int number_of_vertices() = 0;
+    /// Returns a map with the ids of all feasible start vertices as keys and some heuristic value.
     virtual std::map<unsigned int,double> get_feasible_start_vertices() = 0;
+    /// Returns a map with the ids of all feasible neighbour vertices of vertex as keys and some heuristic value.
     virtual std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex) = 0;
+    /// Returns the quality of a given tour.
     virtual double eval_tour(const std::vector<unsigned int> &tour) = 0;
+    /// Returns the amount of pheromone that shall be deposited onto the edge pointing to v.
     virtual double pheromone_update(unsigned int v, double tour_length) = 0;
+    /// Callback that notifies the client code that the current ant has added this vertex to it's tour.
     virtual void added_vertex_to_tour(unsigned int vertex) = 0;
+    /// Determines whether the supplied tour is complete.
     virtual bool is_tour_complete(const std::vector<unsigned int> &tour) = 0;
+    /// Gives the client code the oppurtunity to improve the tour after construction by applying some local search.
     virtual std::vector<unsigned int> apply_local_search(const std::vector<unsigned int> &tour) { return tour; }
+    /// Here go eventually necessary cleanup actions between two tour constructions.
     virtual void cleanup() = 0;
 };
 
@@ -124,38 +198,69 @@ class ACSAnt : public Ant {
     void set_q0(double q0);
 };
 
+enum LocalSearchType { NONE, ITERATION_BEST, ALL };
+
+/// Base class of all ACO configurations.
+///
+/// Includes all configuration parameters all ACO variants have in common.
 class AntColonyConfiguration {
   public:
+    /// Number of ants that construct a tour in every iteration.
     unsigned int number_of_ants;
+    /// Weight of pheromone value in tour construction.
     double alpha;
+    /// Weight of heuristic information in tour construction.
     double beta;
+    /// Defines whether the stagnation measure shall be computed.
     bool stagnation_measure;
+    /// Defines how fast pheromone shall evaporate.
     double evaporation_rate;
+    /// The initial amount of pheromone deposited on the edges.
     double initial_pheromone;
-    bool iteration_best_ls;
+    /// The type of local search to be performed.
+    LocalSearchType local_search;
 
     AntColonyConfiguration();
 };
 
+/// Configuration class for ElististAntColony.
 class ElitistAntColonyConfiguration : public AntColonyConfiguration {
   public:
+    /// Weight for the pheromone update of the best-so-far ant.
     double elitist_weight;
     ElitistAntColonyConfiguration();
 };
 
+/// Configuration class for RankBasedAntColony.
 class RankBasedAntColonyConfiguration : public AntColonyConfiguration {
   public:
+    /// Number of elitist ants.
+    ///
+    /// For example: if elitist_ants = 5 then the best-so-far ant and the top
+    ///              4 iteration-best ants are allowed to deposit pheromone.
     unsigned int elitist_ants;
     RankBasedAntColonyConfiguration();
 };
 
+/// Configuration class for MaxMinAntColony.
 class MaxMinAntColonyConfiguration : public AntColonyConfiguration {
   public:
+    /// Frequency of best-so-far ant pheromone updates.
+    ///
+    /// For example: if best_so_far_frequency = 3 then the best-so-far ant
+    ///              deposits pheromone in every third iteration instead of the
+    ///              iteration-best-ant
     unsigned int best_so_far_frequency;
+    /// Determines lower bound of pheromone values.
+    ///
+    /// For example: if a = 2 then the lower bound of the pheromone values is
+    ///              half of the initial pheromone value (the pheromone value
+    ///              before the first iteration)
     double a;
     MaxMinAntColonyConfiguration();
 };
 
+/// Configuration class for ACSAntColony.
 class ACSAntColonyConfiguration : public AntColonyConfiguration {
   public:
     double q0;
@@ -163,6 +268,11 @@ class ACSAntColonyConfiguration : public AntColonyConfiguration {
     ACSAntColonyConfiguration();
 };
 
+/// Virtual base class of all Ant Colony variants.
+///
+/// Ant Colony variants differ in the way ants construct their tours and how
+/// pheromone values are updated. All other logic is handled by this virtual
+/// base class.
 template<class T=Ant, class P=PheromoneMatrix> class AntColony {
   private:
     void construct_ants_solutions() {
@@ -173,10 +283,11 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
     }
 
     void apply_local_search() {
-      if(iteration_best_ls_) {
+      ants_->sort();
+      if(local_search_ == ITERATION_BEST) {
         typename std::list<T>::iterator it_best = ants_->begin();
         (*it_best).apply_local_search(*problem_);
-      } else {
+      } else if(local_search_ == ALL) {
         for(typename std::list<T>::iterator it=ants_->begin();it!=ants_->end();it++) {
           T &ant = (*it);
           ant.apply_local_search(*problem_);
@@ -187,6 +298,14 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
     void reset_ants() {
       for(typename std::list<T>::iterator it=ants_->begin();it!=ants_->end();it++) {
         it->reset();
+      }
+    }
+
+    void update_best_tours_no_ls() {
+      ants_->sort();
+      (*best_iteration_no_ls_) = ants_->front();
+      if(best_so_far_no_ls_->get_tour_length() > best_iteration_no_ls_->get_tour_length()) {
+        (*best_so_far_no_ls_) = (*best_iteration_no_ls_);
       }
     }
 
@@ -220,12 +339,14 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
     double alpha_;
     double beta_;
     bool compute_stagnation_measure_;
-    bool iteration_best_ls_;
+    LocalSearchType local_search_;
     double stagnation_measure_;
     std::list<T> *ants_;
     OptimizationProblem *problem_;
     T *best_so_far_;
     T *best_iteration_;
+    T *best_so_far_no_ls_;
+    T *best_iteration_no_ls_;
 
   public:
     AntColony(OptimizationProblem *problem, const AntColonyConfiguration &config) {
@@ -235,10 +356,12 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       alpha_ = config.alpha;
       beta_ = config.beta;
       compute_stagnation_measure_ = config.stagnation_measure;
-      iteration_best_ls_ = config.iteration_best_ls;
+      local_search_ = config.local_search;
       stagnation_measure_ = 0.0;
       best_so_far_ = new T(problem->get_max_tour_size());
       best_iteration_ = new T(problem->get_max_tour_size());
+      best_so_far_no_ls_ = new T(problem->get_max_tour_size());
+      best_iteration_no_ls_ = new T(problem->get_max_tour_size());
     }
 
     ~AntColony() {
@@ -247,11 +370,13 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       delete pheromones_;
       delete best_so_far_;
       delete best_iteration_;
+      delete best_so_far_no_ls_;
+      delete best_iteration_no_ls_;
     };
 
     void run() {
       construct_ants_solutions();
-      update_best_tours();
+      update_best_tours_no_ls();
       apply_local_search();
       update_best_tours();
       if(compute_stagnation_measure_) {
@@ -277,11 +402,31 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       return best_iteration_->get_tour_length();
     }
 
+    std::vector<unsigned int> get_best_tour_no_ls() {
+      return best_so_far_no_ls_->get_vertices();
+    }
+
+    std::vector<unsigned int> get_best_tour_in_iteration_no_ls() {
+      return best_iteration_no_ls_->get_vertices();
+    }
+
+    double get_best_tour_length_no_ls() {
+      return best_so_far_no_ls_->get_tour_length();
+    }
+
+    double get_best_tour_length_in_iteration_no_ls() {
+      return best_iteration_no_ls_->get_tour_length();
+    }
+
     double get_stagnation_measure() {
       return stagnation_measure_;
     }
 };
 
+/// Implementation of ACO variant "Simple Ant System".
+///
+/// In this ACO variant all ants are allowed to deposit pheromone. Tours are
+/// constructed random-proportionally.
 class SimpleAntColony : public AntColony<SimpleAnt> {
   public:
     SimpleAntColony(OptimizationProblem *problem, const AntColonyConfiguration &config);
@@ -289,6 +434,11 @@ class SimpleAntColony : public AntColony<SimpleAnt> {
     void update_pheromones();
 };
 
+/// Implementation of ACO variant "Elitist Ant System".
+///
+/// In this ACO variant all ants are allowed to deposit pheromone. Additionally
+/// the best-so-far ant is allowed to deposit pheromone multiplied by some 
+/// elitist_weight_ in every iteration. Tours are constructed random-proportionally.
 class ElitistAntColony : public AntColony<SimpleAnt> {
   private:
     double elitist_weight_;
@@ -298,6 +448,13 @@ class ElitistAntColony : public AntColony<SimpleAnt> {
     void update_pheromones();
 };
 
+/// Implementation of ACO variant "Rank-Based Ant System".
+///
+/// In this ACO variant only a constant number of ants is allowed to deposit
+/// pheromone in every iteration. For example if elitist_ants_ = 5 then the
+/// best-so-far ant deposits pheromone * 5, the iteration-best ant deposits
+/// pheromone * 4, the second iteration-best ant deposits pheromone * 3 and so
+/// on. Tours are constructe random-proporationallyly.
 class RankBasedAntColony : public AntColony<SimpleAnt> {
   private:
     unsigned int elitist_ants_;
@@ -307,6 +464,15 @@ class RankBasedAntColony : public AntColony<SimpleAnt> {
     void update_pheromones();
 };
 
+/// Implementation of ACO variant "Max-Min Ant System".
+///
+/// In this ACO variant either the best-so-far or the iteration-best ant is
+/// allowed to deposit pheromone depending on the best_so_far_frequency. If the
+/// best_so_far_frequency equals 3 then the best-so-far ant deposits it's
+/// pheromone every third iteration instead of the iteration-best ant.
+/// Upper and lower bounds on the pheromone values are introduced. The upper
+/// bound is given by the initial pheromone value while the lower bound is
+/// defined as: upper bound / a_. Tours are constructed random-proporationally.
 class MaxMinAntColony : public AntColony<SimpleAnt, MaxMinPheromoneMatrix> {
   private:
     unsigned int best_so_far_frequency_;
@@ -317,6 +483,14 @@ class MaxMinAntColony : public AntColony<SimpleAnt, MaxMinPheromoneMatrix> {
     void update_pheromones();
 };
 
+/// Implementation of ACO variant "Ant Colony System".
+///
+/// In this ACO variant only the best-so-far ant is allowed to deposit
+/// pheromone. Also pheromone evaporation only affects the edges chosen by the
+/// best-so-far ant. Tour construction is done pseudo-random proportionally
+/// meaning that with probability q0 the vertex with the best value is chosen
+/// and with probability 1 - q0 the vertex with the best value is most likely
+/// to be chosen by the ant during construction.
 class ACSAntColony : public AntColony<ACSAnt, ACSPheromoneMatrix> {
   public:
     ACSAntColony(OptimizationProblem *problem, const ACSAntColonyConfiguration &config);

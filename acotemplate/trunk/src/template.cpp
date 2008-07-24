@@ -4,7 +4,7 @@
 #include <acotemplate/template.h>
 #include <liblocalsearch/localsearch.h>
 
-Problem::Problem(Matrix<unsigned int> *distances) {
+Problem::Problem() {
 }
 
 Problem::~Problem() {
