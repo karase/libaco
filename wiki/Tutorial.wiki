@@ -1,18 +1,20 @@
 #summary Solving the Travelling Salesman Problem with libaco.
 #labels Featured
 
-= Building your project with the GNU C++ Compiler =
-
-== Project template ==
+= Project template =
 
 = Getting started =
 
 {{{
-AntColonyConfiguration config;
-SimpleAntColony colony(new TspProblem(), config);
-colony.run(); // run one iteration
-std::vector<unsigned int> tour = colony.get_best_tour();
-double length = colony.get_best_tour_length();
+#include <libaco/ants.h>
+
+void main() {
+  AntColonyConfiguration config;
+  SimpleAntColony colony(new TspProblem(), config);
+  colony.run(); // run one iteration
+  std::vector<unsigned int> tour = colony.get_best_tour();
+  double length = colony.get_best_tour_length();
+}
 }}}
 
 = Defining the problem =
