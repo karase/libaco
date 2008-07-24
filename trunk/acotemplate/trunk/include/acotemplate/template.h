@@ -9,7 +9,7 @@
 
 class Problem : public OptimizationProblem {
   public:
-    Problem(Matrix<unsigned int> *distances);
+    Problem();
     ~Problem();
     unsigned int get_max_tour_size();
     unsigned int number_of_vertices();
