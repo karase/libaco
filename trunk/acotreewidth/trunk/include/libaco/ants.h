@@ -62,8 +62,6 @@
 ///
 /// For a far more detailed explanation on how to make use of this library take a look at the tutorial at:
 ///
-/// http://code.google.com/p/libaco/wiki/Tutorial
-///
 ///It shows step-by-step how to implement a program with libaco for finding solutions to arbitrary instances of the Travelling Salesman Problem.
 
 class PheromoneMatrix : protected Matrix<double> {
@@ -128,23 +126,56 @@ class Tour {
 class OptimizationProblem {
   public:
     /// Returns the maximum number of nodes in a tour.
+    ///
+    /// \return maximum number of nodes in a tour.
     virtual unsigned int get_max_tour_size() = 0;
+
     /// Returns the number of vertices in the construction graph.
+    ///
+    /// \return the number of vertices in the construction graph.
     virtual unsigned int number_of_vertices() = 0;
+
     /// Returns a map with the ids of all feasible start vertices as keys and some heuristic value.
+    ///
+    /// \return a map that maps vertex ids to their heuristic value. the greater the value the more likely the vertex is chosen by the ant.
     virtual std::map<unsigned int,double> get_feasible_start_vertices() = 0;
+
     /// Returns a map with the ids of all feasible neighbour vertices of vertex as keys and some heuristic value.
+    ///
+    /// \param vertex the ant's current location.
+    /// \return a map that maps neighbour ids to their heuristic value. the greater the value the more likely the neighbour is chosen by the ant.
     virtual std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex) = 0;
-    /// Returns the quality of a given tour.
+
+    /// Returns the 'length' of a given tour (the lower the better).
+    ///
+    /// \param tour that is supposed to be evaluated.
+    /// \return the 'length' of the tour.
     virtual double eval_tour(const std::vector<unsigned int> &tour) = 0;
+
     /// Returns the amount of pheromone that shall be deposited onto the edge pointing to v.
-    virtual double pheromone_update(unsigned int v, double tour_length) = 0;
+    ///
+    /// \param vertex the vertex 
+    /// \param tour_length the length of the tour.
+    /// \return amount of pheromone that shall be laid on the edge to v.
+    virtual double pheromone_update(unsigned int vertex, double tour_length) = 0;
+    
     /// Callback that notifies the client code that the current ant has added this vertex to it's tour.
+    ///
+    /// \param vertex that has been added to the tour.
     virtual void added_vertex_to_tour(unsigned int vertex) = 0;
+
     /// Determines whether the supplied tour is complete.
+    ///
+    /// \param tour shall be checked for completeness.
+    /// \return true if the tour is complete. false otherwise.
     virtual bool is_tour_complete(const std::vector<unsigned int> &tour) = 0;
+
     /// Gives the client code the oppurtunity to improve the tour after construction by applying some local search.
+    ///
+    /// \param tour initial tour for the local search.
+    /// \return best tour found.
     virtual std::vector<unsigned int> apply_local_search(const std::vector<unsigned int> &tour) { return tour; }
+
     /// Here go eventually necessary cleanup actions between two tour constructions.
     virtual void cleanup() = 0;
 };
@@ -263,7 +294,10 @@ class MaxMinAntColonyConfiguration : public AntColonyConfiguration {
 /// Configuration class for ACSAntColony.
 class ACSAntColonyConfiguration : public AntColonyConfiguration {
   public:
+    /// Probability that the ant chooses a vertex rationally (according to
+    /// the heuristic and pheromone information).
     double q0;
+    /// Local pheromone update parameter.
     double epsilon;
     ACSAntColonyConfiguration();
 };
