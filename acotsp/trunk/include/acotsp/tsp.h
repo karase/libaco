@@ -7,10 +7,23 @@
 #include <libaco/ants.h>
 #include <libaco/util.h>
 
+/// Travelling Salesman Problem libaco implemenation.
 class TspProblem : public OptimizationProblem {
   private:
+    /// Vertices that were already visited by the current ant.
+    ///
+    /// If a vertex has been already visited by the current ant it's value in
+    /// the map is true.
     std::map<unsigned int,bool> visited_vertices_;
+
+    /// Distance matrix of the TSP instance.
+    ///
+    /// (*distances_)[v][w] gives you the distance between city v and city w.
     Matrix<unsigned int> *distances_;
+
+    /// The first city the current ant visited on it's tour.
+    ///
+    /// This is where the tour also needs to end.
     unsigned int start_vertex_;
   public:
     TspProblem(Matrix<unsigned int> *distances);
