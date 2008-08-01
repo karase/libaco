@@ -229,13 +229,12 @@ class ACSAnt : public Ant {
     void set_q0(double q0);
 };
 
-enum LocalSearchType { NONE, ITERATION_BEST, ALL };
-
 /// Base class of all ACO configurations.
 ///
 /// Includes all configuration parameters all ACO variants have in common.
 class AntColonyConfiguration {
   public:
+    enum LocalSearchType { NONE, ITERATION_BEST, ALL };
     /// Number of ants that construct a tour in every iteration.
     unsigned int number_of_ants;
     /// Weight of pheromone value in tour construction.
@@ -318,10 +317,10 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
 
     void apply_local_search() {
       ants_->sort();
-      if(local_search_ == ITERATION_BEST) {
+      if(local_search_ == AntColonyConfiguration::ITERATION_BEST) {
         typename std::list<T>::iterator it_best = ants_->begin();
         (*it_best).apply_local_search(*problem_);
-      } else if(local_search_ == ALL) {
+      } else if(local_search_ == AntColonyConfiguration::ALL) {
         for(typename std::list<T>::iterator it=ants_->begin();it!=ants_->end();it++) {
           T &ant = (*it);
           ant.apply_local_search(*problem_);
@@ -373,7 +372,7 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
     double alpha_;
     double beta_;
     bool compute_stagnation_measure_;
-    LocalSearchType local_search_;
+    AntColonyConfiguration::LocalSearchType local_search_;
     double stagnation_measure_;
     std::list<T> *ants_;
     OptimizationProblem *problem_;

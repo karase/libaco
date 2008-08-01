@@ -25,7 +25,7 @@ static bool elitist_as_flag = false;
 static bool rank_as_flag = false;
 static bool maxmin_as_flag = false;
 static bool acs_as_flag = false;
-static LocalSearchType local_search = NONE;
+static AntColonyConfiguration::LocalSearchType local_search = AntColonyConfiguration::NONE;
 
 static double elitist_weight = 2.0;
 static unsigned int ranked_ants = 1;
@@ -126,11 +126,11 @@ static void parse_options(int argc, char *argv[]) {
   acs_epsilon = acs_epsilon_arg.getValue();
 
   if(no_ls_arg.isSet()) {
-    local_search = NONE;
+    local_search = AntColonyConfiguration::NONE;
   } else if(it_best_ls_arg.isSet()) {
-    local_search = ITERATION_BEST;
+    local_search = AntColonyConfiguration::ITERATION_BEST;
   } else if(ls_arg.isSet()) {
-    local_search = ALL;
+    local_search = AntColonyConfiguration::ALL;
   }
 }
 
@@ -275,9 +275,9 @@ int main(int argc, char *argv[]) {
   colony = get_ant_colony(problem);
 
   std::cout << "iter\ttime\tbest";
-  std::cout << ((local_search != NONE) ? "\tnols" : "");
+  std::cout << ((local_search != AntColonyConfiguration::NONE) ? "\tnols" : "");
   std::cout << "\tbest_it";
-  std::cout << ((local_search != NONE) ? "\tit_nols" : "");
+  std::cout << ((local_search != AntColonyConfiguration::NONE) ? "\tit_nols" : "");
   std::cout << (print_stagnation_flag ? "\tstagnation" : "");
   std::cout << (print_tour_flag ? "\tordering" : "");
   std::cout << std::endl;
@@ -287,12 +287,12 @@ int main(int argc, char *argv[]) {
     std::cout << (i+1) << "\t";
     std::cout << timer() << "\t";
     std::cout << colony->get_best_tour_length() << "\t";
-    if(local_search != NONE) {
+    if(local_search != AntColonyConfiguration::NONE) {
       std::cout << colony->get_best_tour_length_no_ls() << "\t";
     }
     std::cout << colony->get_best_tour_length_in_iteration() << "\t";
 
-    if(local_search != NONE) {
+    if(local_search != AntColonyConfiguration::NONE) {
       std::cout << colony->get_best_tour_length_in_iteration_no_ls() << "\t";
     }
     if(print_stagnation_flag) {
