@@ -360,6 +360,21 @@ void ACSAnt::set_q0(double q0) {
   q0_ = q0;
 }
 
+double compute_average_pheromone_update(OptimizationProblem &op) {
+  SimpleAnt ant(op.get_max_tour_size());
+  PheromoneMatrix matrix(op.number_of_vertices(), 0.0, 1.0);
+  ant.construct_rational_solution(op, matrix, 0, 1);
+  std::vector<unsigned int> tour = ant.get_vertices();
+  double tour_length = op.eval_tour(tour);
+  double pheromone_sum = 0.0;
+  for(unsigned int i=0;i<tour.size();i++) {
+    pheromone_sum += op.pheromone_update(tour[i], tour_length);
+  }
+  double pheromone_avg = pheromone_sum / tour.size();
+  op.cleanup();
+  return pheromone_avg;
+}
+
 AntColonyConfiguration::AntColonyConfiguration() {
   number_of_ants = 20;
   alpha = 2.0;

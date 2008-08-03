@@ -229,6 +229,11 @@ class ACSAnt : public Ant {
     void set_q0(double q0);
 };
 
+/// Constructs a solution based on the heuristic information alone and computes the average pheromone update per edge.
+///
+/// Is useful for finding a initial pheromone value. A good initial pheromone value might be number_of_ants * average_pheromone_update
+double compute_average_pheromone_update(OptimizationProblem &op);
+
 /// Base class of all ACO configurations.
 ///
 /// Includes all configuration parameters all ACO variants have in common.
