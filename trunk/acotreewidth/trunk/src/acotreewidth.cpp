@@ -14,7 +14,7 @@ static unsigned int iterations = UINT_MAX;
 static double alpha = 1.0;
 static double beta = 1.0;
 static double rho = 0.1;
-static double initial_pheromone = 0.1;
+static double initial_pheromone = -1.0;
 static unsigned int heuristic = 0;
 static unsigned int graph_type = 0;
 static bool print_tour_flag = false;
@@ -169,36 +169,49 @@ static void set_config(AntColonyConfiguration &config) {
   config.local_search = local_search;
 }
 
+static void set_initial_pheromone(OptimizationProblem *problem, AntColonyConfiguration &config) {
+  if(config.initial_pheromone == -1.0) {
+    double initial_pheromone = compute_average_pheromone_update(*problem) * config.number_of_ants;
+    config.initial_pheromone = initial_pheromone;
+  }
+}
+
 AntColony<Ant> *get_ant_colony(OptimizationProblem *problem) {
   AntColony<Ant> *colony;
 
   if(simple_as_flag) {
     AntColonyConfiguration config;
     set_config(config);
+    set_initial_pheromone(problem, config);
     colony = (AntColony<Ant> *) new SimpleAntColony(problem, config);
   } else if(elitist_as_flag) {
     ElitistAntColonyConfiguration config;
     set_config(config);
+    set_initial_pheromone(problem, config);
     config.elitist_weight = elitist_weight;
     colony = (AntColony<Ant> *) new ElitistAntColony(problem, config);
   } else if(rank_as_flag) {
     RankBasedAntColonyConfiguration config;
     set_config(config);
+    set_initial_pheromone(problem, config);
     config.elitist_ants = ranked_ants;
     colony = (AntColony<Ant> *) new RankBasedAntColony(problem, config);
   } else if(maxmin_as_flag) {
     MaxMinAntColonyConfiguration config;
     set_config(config);
+    set_initial_pheromone(problem, config);
     config.best_so_far_frequency = maxmin_frequency;
     config.a = maxmin_a;
     colony = (AntColony<Ant> *) new MaxMinAntColony(problem, config);
   } else if(acs_as_flag) {
     ACSAntColonyConfiguration config;
     set_config(config);
+    set_initial_pheromone(problem, config);
     config.q0 = acs_q0;
     config.epsilon = acs_epsilon;
     colony = (AntColony<Ant> *) new ACSAntColony(problem, config);
   }
+
   return colony;
 }
 
