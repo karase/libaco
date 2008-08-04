@@ -143,7 +143,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
       return graph_->number_of_vertices();
     }
 
-    std::map<unsigned int,double> get_feasible_start_vertices() {
+    virtual std::map<unsigned int,double> get_feasible_start_vertices() {
       std::map<unsigned int,double> vertices;
       for(unsigned int i=0;i<graph_->number_of_vertices();i++) {
         vertices[i] = heuristic_(*graph_, i);
@@ -151,7 +151,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
       return vertices;
     }
 
-    std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex) {
+    virtual std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex) {
       std::map<unsigned int,double> vertices;
       for(unsigned int i=0;i<graph_->number_of_vertices();i++) {
         if (!visited_vertices_[i]) {
@@ -300,6 +300,28 @@ template <class T> class HyperTreeDecompProblem : public DecompProblem<T> {
         edges.push_back(maximum_edge);
       }
       return edges;
+    }
+
+    std::map<unsigned int,double> get_feasible_start_vertices() {
+      std::map<unsigned int,double> vertices;
+      for(unsigned int i=0;i<DecompProblem<T>::graph_->number_of_vertices();i++) {
+        std::vector<unsigned int> clique = DecompProblem<T>::graph_->get_neighbours(i);
+        clique.push_back(i);
+        vertices[i] = 1.0 / compute_greedy_hyperedge_covering(clique).size();
+      }
+      return vertices;
+    }
+
+    std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex) {
+      std::map<unsigned int,double> vertices;
+      for(unsigned int i=0;i<DecompProblem<T>::graph_->number_of_vertices();i++) {
+        if (!DecompProblem<T>::visited_vertices_[i]) {
+          std::vector<unsigned int> clique = DecompProblem<T>::graph_->get_neighbours(i);
+          clique.push_back(i);
+          vertices[i] = 1.0 / compute_greedy_hyperedge_covering(clique).size();
+        }
+      }
+      return vertices;
     }
 };
 
