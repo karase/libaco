@@ -2,6 +2,7 @@
 #include <iostream>
 #include <list>
 #include <cmath>
+#include <cfloat>
 #include <libaco/ants.h>
 #include <libaco/util.h>
 
@@ -36,6 +37,38 @@ double PheromoneMatrix::get_evaporation_rate() {
 
 unsigned int PheromoneMatrix::size() {
   return matrix_->size();
+}
+
+double PheromoneMatrix::lambda_branching_factor(unsigned int v, double lambda) {
+  double min_pheromone = DBL_MAX;
+  double max_pheromone = 0.0;
+  for(unsigned int i=0;i<this->size();i++) {
+    double pheromone = (*matrix_)[v][i];
+    if(min_pheromone > pheromone) {
+      min_pheromone = pheromone;
+    }
+
+    if(max_pheromone < pheromone) {
+      max_pheromone = pheromone;
+    }
+  }
+
+  double limit = min_pheromone + lambda * (max_pheromone - min_pheromone);
+  unsigned int branching_factor = 0;
+  for(unsigned int j=0;j<this->size();j++) {
+    if((*matrix_)[v][j] > limit) {
+      branching_factor++;
+    }
+  }
+  return branching_factor;
+}
+
+double PheromoneMatrix::average_lambda_branching_factor(double lambda) {
+  double sum = 0.0;
+  for(unsigned int i=0;i<this->size();i++) {
+    sum += lambda_branching_factor(i, lambda);
+  }
+  return sum / this->size();
 }
 
 MaxMinPheromoneMatrix::MaxMinPheromoneMatrix(int vertices, double evaporation_rate, double initial_pheromone) : PheromoneMatrix(vertices, evaporation_rate, initial_pheromone) {
@@ -379,10 +412,10 @@ AntColonyConfiguration::AntColonyConfiguration() {
   number_of_ants = 20;
   alpha = 2.0;
   beta = 5.0;
-  stagnation_measure = false;
+  stagnation_measure = STAG_NONE;
   evaporation_rate = 0.1;
   initial_pheromone = 1.0;
-  local_search = ITERATION_BEST;
+  local_search = LS_ITERATION_BEST;
 }
 
 ElitistAntColonyConfiguration::ElitistAntColonyConfiguration() : AntColonyConfiguration() {
