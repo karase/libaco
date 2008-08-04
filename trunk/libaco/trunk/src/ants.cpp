@@ -56,7 +56,7 @@ double PheromoneMatrix::lambda_branching_factor(unsigned int v, double lambda) {
   double limit = min_pheromone + lambda * (max_pheromone - min_pheromone);
   unsigned int branching_factor = 0;
   for(unsigned int j=0;j<this->size();j++) {
-    if((*matrix_)[v][j] > limit) {
+    if((*matrix_)[v][j] >= limit) {
       branching_factor++;
     }
   }
