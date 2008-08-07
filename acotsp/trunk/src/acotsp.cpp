@@ -182,7 +182,7 @@ static void terminate(int signal) {
   print_tour(colony->get_best_tour());
   std::cout << std::endl;
   delete colony;
-  exit(0);
+  exit(EXIT_SUCCESS);
 }
 
 double timer() {
@@ -205,7 +205,7 @@ int main(int argc, char *argv[]) {
     parse_options(argc, argv);
   } catch (TCLAP::ArgException &e) {
     std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
-    exit(0);
+    exit(EXIT_SUCCESS);
   }
 
   OptimizationProblem *problem;
@@ -215,7 +215,7 @@ int main(int argc, char *argv[]) {
   }
   catch(FileNotFoundException e) {
     std::cerr << "error: could not open " << e.what()  << std::endl;
-    exit(0);
+    exit(EXIT_SUCCESS);
   }
 
   colony = get_ant_colony(problem);
