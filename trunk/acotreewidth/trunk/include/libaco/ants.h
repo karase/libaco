@@ -191,7 +191,7 @@ class Ant {
     void update_tour_length(OptimizationProblem &op);
     void add_vertex_to_tour(OptimizationProblem &op, unsigned int vertex);
     std::multimap<double,unsigned int,MultiMapComp> get_feasible_vertices(OptimizationProblem &op, PheromoneMatrix &pheromones, double alpha, double beta);
-    unsigned int current_vertex();
+    int current_vertex();
     unsigned int choose_next_vertex_with_likelihood(std::multimap<double,unsigned int,MultiMapComp> probabilities);
   public:
     Ant(unsigned int vertices);

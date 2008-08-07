@@ -18,8 +18,8 @@ template <class T> class EliminationGraph : public T {
 
     void eliminate(unsigned int vertex) {
       std::vector<unsigned int> neighbours = T::get_neighbours(vertex);
-      for(int i=0;i<neighbours.size();i++) {
-        for(int j=i;j<neighbours.size();j++) {
+      for(unsigned int i=0;i<neighbours.size();i++) {
+        for(unsigned int j=i;j<neighbours.size();j++) {
           if(i!=j) {
             T::add_edge(neighbours[i],neighbours[j]);
           }
