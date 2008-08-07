@@ -225,7 +225,7 @@ int main(int argc, char *argv[]) {
   std::cout << (print_tour_flag ? "\tordering" : "");
   std::cout << std::endl;
   timer();
-  for(int i=0;i<iterations && timer() < time_limit;i++) {
+  for(unsigned int i=0;i<iterations && timer() < time_limit;i++) {
     colony->run();
     std::cout << (i+1) << "\t";
     std::cout << timer() << "\t";

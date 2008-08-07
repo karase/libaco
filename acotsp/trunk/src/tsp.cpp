@@ -91,8 +91,6 @@ Matrix<unsigned int> *Parser::parse_tsplib(const char *filepath) throw(FileNotFo
   std::vector<city> cities;
   section s = NONE;
   std::string keyword;
-  char buf[1024];
-  size_t found;
   std::ifstream file(filepath);
 
   if(!file) {
