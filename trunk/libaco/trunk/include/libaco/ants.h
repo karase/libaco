@@ -377,7 +377,7 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
     }
 
     double compute_lambda_branching_factor() {
-      stagnation_measure_ = pheromones_->average_lambda_branching_factor(0.05);
+      return pheromones_->average_lambda_branching_factor(0.05);
     }
 
     void update_stagnation_measure() {
