@@ -24,8 +24,8 @@ void PheromoneMatrix::evaporate(unsigned int v, unsigned int w) {
 }
 
 void PheromoneMatrix::evaporate_all() {
-  for(int i=0;i<matrix_->size();i++) {
-    for(int j=0;j<matrix_->size();j++) {
+  for(unsigned int i=0;i<matrix_->size();i++) {
+    for(unsigned int j=0;j<matrix_->size();j++) {
       evaporate(i,j);
     }
   }
@@ -164,6 +164,7 @@ Tour &Tour::operator=(const Tour &t) {
   }
   this->length_ = t.length_;
   this->capacity_ = t.capacity_;
+  return *this;
 }
 
 bool Tour::operator<(const Tour &t) {
@@ -183,6 +184,7 @@ Ant::Ant(const Ant &ant) {
 
 Ant &Ant::operator=(const Ant &ant) {
   (*tour) = (*ant.tour);
+  return *this;
 }
 
 bool Ant::operator<(const Ant &ant) {
@@ -206,7 +208,7 @@ void Ant::add_vertex_to_tour(OptimizationProblem &op, unsigned int vertex) {
   op.added_vertex_to_tour(vertex);
 }
 
-unsigned int Ant::current_vertex() {
+int Ant::current_vertex() {
   if(tour->size() > 0) {
     return (*tour)[tour->size()-1];
   } else {
@@ -242,10 +244,10 @@ std::multimap<double,unsigned int,Ant::MultiMapComp> Ant::get_feasible_vertices(
     //std::cout << pheromones.get(pheromones.size()-1, (*it).first) << std::endl;
     unsigned int vertex = (*it).first;
     //double heuristic_value = (*it).second;
-    (*it).second /= denominator;
+    double probability = (*it).second / denominator;
     //std::cout << pheromones.get(current_vertex(), vertex) << " " << heuristic_value << std::endl;
-    //std::cout << "vertex: " << (*it).first << " heuristic: " << heuristic_value << " probability: " << (*it).second << std::endl;
-    probabilities.insert(std::pair<double,unsigned int>((*it).second, (*it).first));
+    //std::cout << "vertex: " << vertex << " heuristic: " << heuristic_value << " probability: " << probability << std::endl;
+    probabilities.insert(std::pair<double,unsigned int>(probability, vertex));
   }
   //std::cout << "***************************************" << std::endl;
   return probabilities;
