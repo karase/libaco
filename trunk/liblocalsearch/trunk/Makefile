@@ -4,7 +4,7 @@ build/liblocalsearch.a: build/localsearch.o
 	ar rcs build/liblocalsearch.a build/*.o
 
 build/localsearch.o: src/localsearch.cpp include/liblocalsearch/localsearch.h
-	g++ -ansi -I ./include -c src/localsearch.cpp -o build/localsearch.o
+	g++ -Wall -ansi -I ./include -c src/localsearch.cpp -o build/localsearch.o
 
 doc: ./src/ ./include/liblocalsearch/
 	doxygen
