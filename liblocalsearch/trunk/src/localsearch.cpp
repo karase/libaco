@@ -68,7 +68,7 @@ void LocalSearch::set_solution(std::vector<unsigned int> solution) {
 }
 
 double LocalSearch::eval_solution(const std::vector<unsigned int> &solution) {
-  eval_func_->eval_solution(solution);
+  return eval_func_->eval_solution(solution);
 }
 
 void LocalSearch::search_iterations(int iterations) {

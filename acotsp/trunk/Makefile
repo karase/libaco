@@ -6,10 +6,10 @@ bin/acotsp: libaco liblocalsearch build/acotsp.o build/tsp.o
 	g++ -static build/acotsp.o build/tsp.o -L./lib/ -laco -o bin/acotsp
 
 build/acotsp.o: src/acotsp.cpp include/acotsp/tsp.h include/libaco/ants.h include/libaco/graph.h include/libaco/util.h
-	g++ -ansi -I include/ -c src/acotsp.cpp -o build/acotsp.o
+	g++ -Wall -ansi -I include/ -c src/acotsp.cpp -o build/acotsp.o
 
 build/tsp.o: src/tsp.cpp include/libaco/ants.h include/libaco/graph.h include/libaco/util.h include/liblocalsearch/localsearch.h
-	g++ -ansi -I include/ -c src/tsp.cpp -o build/tsp.o
+	g++ -Wall -ansi -I include/ -c src/tsp.cpp -o build/tsp.o
 
 include/libaco/%.h: ../../libaco/trunk/include/libaco/%.h
 	cp ../../libaco/trunk/include/libaco/$*.h include/libaco/
