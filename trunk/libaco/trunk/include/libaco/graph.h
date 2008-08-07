@@ -114,6 +114,7 @@ template <class T> class AdjacencyMap {
 
     AdjacencyMap &operator=(const AdjacencyMap &map) {
       values_ = map.values_;
+      return *this;
     }
 
     T &operator[](unsigned int vertex) {

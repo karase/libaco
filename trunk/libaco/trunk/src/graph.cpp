@@ -17,7 +17,7 @@ unsigned int AdjacencyMatrixGraph::number_of_vertices() const {
 
 std::vector<unsigned int> AdjacencyMatrixGraph::get_neighbours(unsigned int vertex) const {
   std::vector<unsigned int> neighbours;
-  for(int i=0;i<number_of_vertices();i++) {
+  for(unsigned int i=0;i<number_of_vertices();i++) {
     if((*matrix_)[vertex][i]) {
       neighbours.push_back(i);
     }
