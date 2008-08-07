@@ -474,7 +474,6 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
     }
 
     double get_stagnation_measure() {
-      std::cout << stagnation_measure_ << std::endl;
       return stagnation_measure_;
     }
 };
