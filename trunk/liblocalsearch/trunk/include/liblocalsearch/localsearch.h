@@ -6,6 +6,7 @@ unsigned int random_number(unsigned int range=RAND_MAX);
 
 class Neighbourhood {
   public:
+    virtual ~Neighbourhood() {}
     virtual void set_solution(std::vector<unsigned int> solution) = 0;
     virtual std::vector<unsigned int> get_solution() = 0;
     virtual bool has_next_neighbour_solution() = 0;
@@ -27,11 +28,13 @@ class TwoOptNeighbourhood : public Neighbourhood {
 
 class EvaluationFunction {
   public:
+    virtual ~EvaluationFunction() {}
     virtual double eval_solution(const std::vector<unsigned int> &solution) = 0;
 };
 
 class PerturbationFunction {
   public:
+    virtual ~PerturbationFunction() {}
     virtual std::vector<unsigned int> perturbate(const std::vector<unsigned int> &solution) = 0;
 };
 
@@ -45,6 +48,7 @@ class LocalSearch {
     Neighbourhood *neighbourhood_;
   public:
     LocalSearch(std::vector<unsigned int> initial_solution, EvaluationFunction &eval_func, Neighbourhood &neighbourhood);
+    virtual ~LocalSearch() {}
     std::vector<unsigned int> get_best_so_far_solution();
     double get_best_so_far_quality();
     void set_solution(std::vector<unsigned int> solution);
