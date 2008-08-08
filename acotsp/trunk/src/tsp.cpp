@@ -127,7 +127,7 @@ Matrix<unsigned int> *Parser::parse_tsplib(const char *filepath) throw(FileNotFo
           city b = cities[k];
           double xd = a.coord_x - b.coord_x;
           double yd = a.coord_y - b.coord_y;
-          unsigned int dab = round(sqrt(xd*xd + yd*yd));
+          unsigned int dab = int(round(sqrt(xd*xd + yd*yd)));
           (*distances)[a.num-1][b.num-1] = dab;
           (*distances)[b.num-1][a.num-1] = dab;
         }
