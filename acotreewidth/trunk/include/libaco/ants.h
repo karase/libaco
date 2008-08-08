@@ -62,6 +62,8 @@
 ///
 /// For a far more detailed explanation on how to make use of this library take a look at the tutorial at:
 ///
+/// http://code.google.com/p/libaco/wiki/Tutorial
+///
 /// It shows step-by-step how to implement a program with libaco for finding solutions to arbitrary instances of the Travelling Salesman Problem.
 
 class PheromoneMatrix : protected Matrix<double> {
@@ -419,7 +421,7 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       best_iteration_no_ls_ = new T(problem->get_max_tour_size());
     }
 
-    ~AntColony() {
+    virtual ~AntColony() {
       delete problem_;
       delete ants_;
       delete pheromones_;
