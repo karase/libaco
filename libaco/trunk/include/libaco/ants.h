@@ -72,6 +72,7 @@ class PheromoneMatrix : protected Matrix<double> {
     double initial_pheromone_;
   public:
     PheromoneMatrix(int vertices, double evaporation_rate, double initial_pheromone);
+    virtual ~PheromoneMatrix() {}
     double get(unsigned int v, unsigned int w);
     virtual void add(unsigned int v, unsigned int w, double amount);
     virtual void evaporate(unsigned int v, unsigned int w);
@@ -129,6 +130,7 @@ class Tour {
 /// Interface to the problem-specific logic a client must supply.
 class OptimizationProblem {
   public:
+    virtual ~OptimizationProblem() {}
     /// Returns the maximum number of nodes in a tour.
     ///
     /// \return maximum number of nodes in a tour.
@@ -200,7 +202,7 @@ class Ant {
     Ant(const Ant &ant);
     Ant &operator=(const Ant &ant);
     bool operator<(const Ant &ant);
-    ~Ant();
+    virtual ~Ant();
     double get_tour_length();
     std::vector<unsigned int> get_vertices();
     void reset();
