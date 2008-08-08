@@ -74,6 +74,7 @@ template <class T> class Matrix {
 
 class Graph {
   public:
+    virtual ~Graph() {}
     virtual void add_edge(unsigned int v, unsigned int w) = 0;
     virtual bool is_edge(unsigned int v, unsigned int w) const = 0;
     virtual void remove_edge(unsigned int v, unsigned int w) = 0;
