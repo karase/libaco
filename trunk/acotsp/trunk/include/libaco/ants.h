@@ -62,6 +62,8 @@
 ///
 /// For a far more detailed explanation on how to make use of this library take a look at the tutorial at:
 ///
+/// http://code.google.com/p/libaco/wiki/Tutorial
+///
 /// It shows step-by-step how to implement a program with libaco for finding solutions to arbitrary instances of the Travelling Salesman Problem.
 
 class PheromoneMatrix : protected Matrix<double> {
@@ -70,6 +72,7 @@ class PheromoneMatrix : protected Matrix<double> {
     double initial_pheromone_;
   public:
     PheromoneMatrix(int vertices, double evaporation_rate, double initial_pheromone);
+    virtual ~PheromoneMatrix() {}
     double get(unsigned int v, unsigned int w);
     virtual void add(unsigned int v, unsigned int w, double amount);
     virtual void evaporate(unsigned int v, unsigned int w);
@@ -127,6 +130,7 @@ class Tour {
 /// Interface to the problem-specific logic a client must supply.
 class OptimizationProblem {
   public:
+    virtual ~OptimizationProblem() {}
     /// Returns the maximum number of nodes in a tour.
     ///
     /// \return maximum number of nodes in a tour.
@@ -198,7 +202,7 @@ class Ant {
     Ant(const Ant &ant);
     Ant &operator=(const Ant &ant);
     bool operator<(const Ant &ant);
-    ~Ant();
+    virtual ~Ant();
     double get_tour_length();
     std::vector<unsigned int> get_vertices();
     void reset();
@@ -419,7 +423,7 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       best_iteration_no_ls_ = new T(problem->get_max_tour_size());
     }
 
-    ~AntColony() {
+    virtual ~AntColony() {
       delete problem_;
       delete ants_;
       delete pheromones_;
