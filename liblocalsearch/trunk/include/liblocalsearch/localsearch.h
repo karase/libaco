@@ -11,6 +11,7 @@ class Neighbourhood {
     virtual std::vector<unsigned int> get_solution() = 0;
     virtual bool has_next_neighbour_solution() = 0;
     virtual const std::vector<unsigned int> &next_neighbour_solution() = 0;
+    virtual void reset();
 };
 
 class TwoOptNeighbourhood : public Neighbourhood {
