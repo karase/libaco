@@ -10,6 +10,10 @@ unsigned int random_number(unsigned int range) {
   return (rand() % range);
 }
 
+void Neighbourhood::reset() {
+  this->set_solution(this->get_solution());
+}
+
 void TwoOptNeighbourhood::set_solution(std::vector<unsigned int> solution) {
   solution_ = solution;
   neighbour_ = solution;
@@ -102,9 +106,11 @@ void HillClimbing::search_neighbourhood() {
     if(quality > best_so_far_quality_) {
       best_so_far_solution_ = solution;
       best_so_far_quality_ = quality;
+      neighbourhood_->set_solution(best_so_far_solution_);
       break;
     }
   }
+  neighbourhood_->reset();
 }
 
 IterativeLocalSearch::IterativeLocalSearch(LocalSearch *local_search, PerturbationFunction *perturbation_func) {
