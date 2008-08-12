@@ -11,6 +11,7 @@ static std::string filepath;
 static bool hypergraph_flag;
 static unsigned int ants = 10;
 static unsigned int iterations = UINT_MAX;
+static unsigned int no_improve_iterations = UINT_MAX;
 static double alpha = 1.0;
 static double beta = 1.0;
 static double rho = 0.1;
@@ -42,6 +43,7 @@ static void parse_options(int argc, char *argv[]) {
   TCLAP::CmdLine cmd("Ant Colony Optimization for Tree Decomposition", ' ', "0.1");
   TCLAP::ValueArg<unsigned int> ants_arg ("m", "ants", "number of ants", false, ants, "integer");
   TCLAP::ValueArg<unsigned int> iterations_arg ("i", "iterations", "number of iterations", false, iterations, "positive integer");
+  TCLAP::ValueArg<unsigned int> no_improve_iterations_arg ("n", "no_improve", "number of iterations without improvement as termination condition", false, no_improve_iterations, "positive integer");
   TCLAP::ValueArg<double> alpha_arg ("a", "alpha", "alpha (influence of pheromone trails)", false, alpha, "double");
   TCLAP::ValueArg<double> beta_arg("b", "beta", "beta (influence of heuristic information)", false, beta, "double");
   TCLAP::ValueArg<double> rho_arg("r", "rho", "pheromone trail evaporation rate", false, rho, "double");
@@ -81,6 +83,7 @@ static void parse_options(int argc, char *argv[]) {
 
   cmd.add(ants_arg);
   cmd.add(iterations_arg);
+  cmd.add(no_improve_iterations_arg);
   cmd.add(alpha_arg);
   cmd.add(beta_arg);
   cmd.add(rho_arg);
@@ -104,6 +107,7 @@ static void parse_options(int argc, char *argv[]) {
   cmd.parse(argc, argv);
   ants = ants_arg.getValue();
   iterations = iterations_arg.getValue();
+  no_improve_iterations = no_improve_iterations_arg.getValue();
   alpha = alpha_arg.getValue();
   beta = beta_arg.getValue();
   rho = rho_arg.getValue();
@@ -304,12 +308,21 @@ int main(int argc, char *argv[]) {
   std::cout << ((stagnation_measure != AntColonyConfiguration::STAG_NONE) ? "\tstagnation" : "");
   std::cout << (print_tour_flag ? "\tordering" : "");
   std::cout << std::endl;
+
   timer();
-  for(unsigned int i=0;i<iterations && timer() < time_limit;i++) {
+  unsigned int no_improve_counter = 0;
+  for(unsigned int i=0;i<iterations && timer() < time_limit && no_improve_counter < no_improve_iterations;i++) {
+    double old_best_tour_length = colony->get_best_tour_length();
     colony->run();
+    double new_best_tour_length = colony->get_best_tour_length();
+    if(old_best_tour_length == new_best_tour_length) {
+      no_improve_counter++;
+    } else {
+      no_improve_counter = 0;
+    }
     std::cout << (i+1) << "\t";
     std::cout << timer() << "\t";
-    std::cout << colony->get_best_tour_length() << "\t";
+    std::cout << new_best_tour_length << "\t";
     if(local_search != AntColonyConfiguration::LS_NONE) {
       std::cout << colony->get_best_tour_length_no_ls() << "\t";
     }

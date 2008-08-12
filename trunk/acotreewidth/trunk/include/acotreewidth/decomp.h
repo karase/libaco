@@ -113,6 +113,13 @@ template <class T> class MaxCliqueNeighbourhood : public Neighbourhood {
     }
 };
 
+class DecompLocalSearch : public LocalSearch {
+  private:
+    void search_neighbourhood();
+  public:
+    DecompLocalSearch(std::vector<unsigned int> initial_solution, EvaluationFunction &eval_func, Neighbourhood &neighbourhood);
+};
+
 template <class T> class DecompProblem : public OptimizationProblem, public EvaluationFunction, public PerturbationFunction {
   protected:
     T *graph_;
@@ -187,22 +194,34 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
 
     std::vector<unsigned int> perturbate(const std::vector<unsigned int> &solution) {
       std::vector<unsigned int> new_solution = solution;
-      std::vector<unsigned int> max_cliques = get_max_clique_positions<T>(*graph_, solution);
-      for(unsigned int i=0;i<max_cliques.size();i++) {
-        unsigned int swap_pos = random_number(new_solution.size());
-        unsigned int tmp = new_solution[max_cliques[i]];
-        new_solution[max_cliques[i]] = new_solution[swap_pos];
-        new_solution[swap_pos] = tmp;
+      
+      unsigned int max_clique_perturbation = random_number(2);
+      if(max_clique_perturbation) {
+        std::vector<unsigned int> max_cliques = get_max_clique_positions<T>(*graph_, solution);
+        for(unsigned int i=0;i<max_cliques.size();i++) {
+          unsigned int swap_pos = random_number(new_solution.size());
+          unsigned int tmp = new_solution[max_cliques[i]];
+          new_solution[max_cliques[i]] = new_solution[swap_pos];
+          new_solution[swap_pos] = tmp;
+        }
+      } else {
+        for(unsigned int i=0;i<5;i++) {
+          unsigned int v1 = random_number(new_solution.size());
+          unsigned int v2 = random_number(new_solution.size());
+          unsigned int tmp = new_solution[v1];
+          new_solution[v1] = new_solution[v2];
+          new_solution[v2] = tmp;
+        }
       }
       return new_solution;
     }
 
     std::vector<unsigned int> apply_local_search(const std::vector<unsigned int> &tour) {
       MaxCliqueNeighbourhood<T> neighbourhood(*graph_, tour);
-      HillClimbing climbing(tour, *this, neighbourhood);
-      IterativeLocalSearch search(&climbing, this);
-      search.run(100);
-      return climbing.get_best_so_far_solution();
+      DecompLocalSearch local_search(tour, *this, neighbourhood);
+      IterativeLocalSearch search(&local_search, this);
+      search.run(100, 10);
+      return local_search.get_best_so_far_solution();
     }
 
     void cleanup() {
