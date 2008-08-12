@@ -118,20 +118,23 @@ IterativeLocalSearch::IterativeLocalSearch(LocalSearch *local_search, Perturbati
   perturbation_func_ = perturbation_func;
 }
 
-void IterativeLocalSearch::run(int iterations) {
+void IterativeLocalSearch::run(int iterations_without_improve, int ls_iterations_without_improve) {
   std::vector<unsigned int> best_solution = local_search_->get_best_so_far_solution();
   std::vector<unsigned int> next_solution;
   double best_quality = local_search_->get_best_so_far_quality();
-  for(int i=0;i<iterations;i++) {
-    local_search_->search_iterations_without_improve(10);
+  int no_improve_counter = 0;
+  while(no_improve_counter < iterations_without_improve) {
+    local_search_->search_iterations_without_improve(ls_iterations_without_improve);
     std::vector<unsigned int> new_solution = local_search_->get_best_so_far_solution();
     double new_quality = local_search_->get_best_so_far_quality();
-    if(new_quality >= best_quality) {
+    if(new_quality > best_quality) {
       next_solution = new_solution;
       best_quality = new_quality;
       best_solution = new_solution;
+      no_improve_counter = 0;
     } else {
       next_solution = best_solution;
+      no_improve_counter++;
     }
 
     next_solution = perturbation_func_->perturbate(next_solution);

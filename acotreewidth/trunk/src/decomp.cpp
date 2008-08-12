@@ -2,6 +2,19 @@
 #include <fstream>
 #include <acotreewidth/decomp.h>
 
+DecompLocalSearch::DecompLocalSearch(std::vector<unsigned int> initial_solution, EvaluationFunction &eval_func, Neighbourhood &neighbourhood) : LocalSearch(initial_solution, eval_func, neighbourhood) {
+}
+
+void DecompLocalSearch::search_neighbourhood() {
+  const std::vector<unsigned int> &solution = neighbourhood_->next_neighbour_solution();
+  double quality = eval_func_->eval_solution(solution);
+  if(quality > best_so_far_quality_) {
+    best_so_far_solution_ = solution;
+    best_so_far_quality_ = quality;
+  }
+  neighbourhood_->set_solution(best_so_far_solution_);
+}
+
 double Heuristic::min_degree(const Graph &graph, unsigned int vertex) {
   return 1.0 / (graph.get_degree(vertex) + 1);
 }

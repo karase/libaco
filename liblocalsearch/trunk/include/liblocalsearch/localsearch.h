@@ -71,5 +71,5 @@ class IterativeLocalSearch {
     PerturbationFunction *perturbation_func_;
   public:
     IterativeLocalSearch(LocalSearch *local_search, PerturbationFunction *perturbation_func);
-    void run(int iterations=5);
+    void run(int iterations_without_improve=100, int ls_iteration_without_improve=10);
 };
