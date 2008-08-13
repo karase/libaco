@@ -127,7 +127,7 @@ static void set_config(AntColonyConfiguration &config) {
 static void set_initial_pheromone(OptimizationProblem *problem, AntColonyConfiguration &config) {
   if(config.initial_pheromone == -1.0) {
     double initial_pheromone = compute_average_pheromone_update(*problem) * config.number_of_ants;
-    config.initial_pheromone = initial_pheromone;
+    config.initial_pheromone = initial_pheromone * (1.0 / ants);
   }
 }
 
