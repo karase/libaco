@@ -369,7 +369,7 @@ void ACSAnt::construct_pseudorandom_proportional_solution(OptimizationProblem &o
   //local pheromone update
   for(unsigned int i=0;i<tour->size();i++) {
     if(i==0) {
-      ((ACSPheromoneMatrix &) pheromones).local_pheromone_update(tour->size(), (*tour)[i]);
+      ((ACSPheromoneMatrix &) pheromones).local_pheromone_update(pheromones.size()-1, (*tour)[i]);
     } else {
       ((ACSPheromoneMatrix &) pheromones).local_pheromone_update((*tour)[i-1], (*tour)[i]);
     }
@@ -508,7 +508,7 @@ void ACSAntColony::update_pheromones() {
   std::vector<unsigned int> vertices = best_so_far_->get_vertices();
   for(unsigned int i=0;i<vertices.size();i++) {
     if(i==0) {
-      pheromones_->evaporate(vertices.size(), vertices[i]);
+      pheromones_->evaporate(pheromones_->size()-1, vertices[i]);
     } else {
       pheromones_->evaporate(vertices[i-1], vertices[i]);
     }
