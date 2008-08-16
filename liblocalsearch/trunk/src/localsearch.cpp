@@ -31,7 +31,7 @@ bool TwoOptNeighbourhood::has_next_neighbour_solution() {
   return j_ < solution_.size();
 }
 
-const std::vector<unsigned int> &TwoOptNeighbourhood::next_neighbour_solution() {
+std::vector<unsigned int> TwoOptNeighbourhood::next_neighbour_solution() {
   swap(neighbour_, prev_i_, prev_j_);
   swap(neighbour_, i_, j_);
   prev_i_ = i_;

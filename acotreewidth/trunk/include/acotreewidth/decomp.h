@@ -64,21 +64,21 @@ template <class T> std::vector<unsigned int> get_max_clique_positions(const T &g
   return max_clique_positions;
 }
 
-template <class T> class MaxCliqueNeighbourhood : public Neighbourhood {
+template <class T> class MaxCliqueRandomNeighbour : public Neighbourhood {
   private:
     T *graph_;
     std::vector<unsigned int> solution_;
     std::vector<unsigned int> neighbour_;
     bool has_next_neighbour_;
   public:
-    MaxCliqueNeighbourhood(const T &graph, std::vector<unsigned int> solution) {
+    MaxCliqueRandomNeighbour(const T &graph, std::vector<unsigned int> solution) {
       graph_ = new T(graph);
       solution_ = solution;
       neighbour_ = solution;
       has_next_neighbour_ = true;
     }
 
-    ~MaxCliqueNeighbourhood() {
+    ~MaxCliqueRandomNeighbour() {
       delete graph_;
     }
 
@@ -96,7 +96,7 @@ template <class T> class MaxCliqueNeighbourhood : public Neighbourhood {
       return has_next_neighbour_;
     }
 
-    const std::vector<unsigned int> &next_neighbour_solution() {
+    std::vector<unsigned int> next_neighbour_solution() {
       std::vector<unsigned int> max_cliques = get_max_clique_positions<T>(*graph_, solution_);
       unsigned int max_clique_pos = 0;
       unsigned int other_pos = 0;
@@ -110,6 +110,50 @@ template <class T> class MaxCliqueNeighbourhood : public Neighbourhood {
       neighbour_[other_pos] = tmp;
       has_next_neighbour_ = false;
       return neighbour_;
+    }
+};
+
+template <class T> class MaxCliqueNeighbourhood : public Neighbourhood {
+  private:
+    T *graph_;
+    std::vector<unsigned int> solution_;
+    unsigned int max_clique_pos_;
+    unsigned int swap_pos_;
+  public:
+    MaxCliqueNeighbourhood(const T &graph, std::vector<unsigned int> solution) {
+      graph_ = new T(graph);
+      solution_ = solution;
+      std::vector<unsigned int> max_cliques = get_max_clique_positions<T>(*graph_, solution_);
+      max_clique_pos_ = max_cliques[random_number(max_cliques.size())];
+      swap_pos_ = 0;
+    }
+
+    ~MaxCliqueNeighbourhood() {
+      delete graph_;
+    }
+
+    void set_solution(std::vector<unsigned int> solution) {
+      solution_ = solution;
+      std::vector<unsigned int> max_cliques = get_max_clique_positions<T>(*graph_, solution_);
+      max_clique_pos_ = max_cliques[random_number(max_cliques.size())];
+      swap_pos_ = 0;
+    }
+
+    std::vector<unsigned int> get_solution() {
+      return solution_;
+    }
+
+    bool has_next_neighbour_solution() {
+      return swap_pos_ < solution_.size();
+    }
+
+    std::vector<unsigned int> next_neighbour_solution() {
+      std::vector<unsigned int> neighbour = solution_;
+      unsigned int tmp = neighbour[max_clique_pos_];
+      neighbour[max_clique_pos_] = neighbour[swap_pos_];
+      neighbour[swap_pos_] = tmp;
+      swap_pos_++;
+      return neighbour;
     }
 };
 
@@ -217,10 +261,14 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     }
 
     std::vector<unsigned int> apply_local_search(const std::vector<unsigned int> &tour) {
-      MaxCliqueNeighbourhood<T> neighbourhood(*graph_, tour);
+      /*MaxCliqueRandomNeighbour<T> neighbourhood(*graph_, tour);
       DecompLocalSearch local_search(tour, *this, neighbourhood);
       IterativeLocalSearch search(&local_search, this);
       search.run(100, 10);
+      return local_search.get_best_so_far_solution();*/
+      MaxCliqueNeighbourhood<T> neighbourhood(*graph_, tour);
+      HillClimbing local_search(tour, *this, neighbourhood);
+      local_search.search_iterations_without_improve(1);
       return local_search.get_best_so_far_solution();
     }
 
