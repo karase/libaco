@@ -10,7 +10,7 @@ class Neighbourhood {
     virtual void set_solution(std::vector<unsigned int> solution) = 0;
     virtual std::vector<unsigned int> get_solution() = 0;
     virtual bool has_next_neighbour_solution() = 0;
-    virtual const std::vector<unsigned int> &next_neighbour_solution() = 0;
+    virtual std::vector<unsigned int> next_neighbour_solution() = 0;
     virtual void reset();
 };
 
@@ -23,7 +23,7 @@ class TwoOptNeighbourhood : public Neighbourhood {
     void set_solution(std::vector<unsigned int> solution);
     std::vector<unsigned int> get_solution();
     bool has_next_neighbour_solution();
-    const std::vector<unsigned int> &next_neighbour_solution();
+    std::vector<unsigned int> next_neighbour_solution();
     void swap(std::vector<unsigned int> &solution, unsigned int i, unsigned int j);
 };
 
