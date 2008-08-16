@@ -87,7 +87,7 @@ void LocalSearch::search_iterations_without_improve(int iterations_without_impro
   while(no_improve_counter < iterations_without_improve) {
     search_neighbourhood();
 
-    if(best_so_far_quality_ < quality) {
+    if(best_so_far_quality_ > quality) {
       no_improve_counter = 0;
       quality = best_so_far_quality_;
     } else {
