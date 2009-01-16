@@ -5,6 +5,7 @@
 #include <exception>
 #include <map>
 #include <list>
+#include <cstring>
 #include <libaco/ants.h>
 #include <liblocalsearch/localsearch.h>
 
@@ -172,13 +173,15 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     std::vector<double> vertex_weight_;
     heuristicf heuristic_; 
     unsigned int vertices_eliminated_;
+    bool pheromone_update_es_;
   public:
-    DecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree) {
+    DecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false) {
       graph_ = graph;
       elim_graph_ = new EliminationGraph<T>(*graph);
       vertex_weight_.reserve(graph->number_of_vertices());
       heuristic_ = heuristic;
       vertices_eliminated_ = 0;
+      pheromone_update_es_ = pheromone_update_es;
     }
 
     ~DecompProblem() {
@@ -283,7 +286,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
 
 template <class T> class TreeDecompProblem : public DecompProblem<T> {
   public:
-    TreeDecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree) : DecompProblem<T>(graph, heuristic) {
+    TreeDecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false) : DecompProblem<T>(graph, heuristic, pheromone_update_es) {
     }
 
     unsigned int compute_width(const std::vector<unsigned int> &tour) {
@@ -308,7 +311,7 @@ template <class T> class HyperTreeDecompProblem : public DecompProblem<T> {
   private:
     HyperGraph *hypergraph_;
   public:
-    HyperTreeDecompProblem(HyperGraph *hypergraph, heuristicf heuristic=Heuristic::min_degree) : DecompProblem<T>(&hypergraph->get_primal_graph<T>(), heuristic) {
+    HyperTreeDecompProblem(HyperGraph *hypergraph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false) : DecompProblem<T>(&hypergraph->get_primal_graph<T>(), heuristic, pheromone_update_es) {
       hypergraph_ = hypergraph;
     }
 

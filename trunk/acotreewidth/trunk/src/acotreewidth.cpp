@@ -37,6 +37,8 @@ static double maxmin_a = 2.0;
 static double acs_q0 = 0.5;
 static double acs_epsilon = 0.1;
 
+static bool pheromone_update_es = false;
+
 static AntColony<Ant> *colony;
 
 static void parse_options(int argc, char *argv[]) {
@@ -59,6 +61,7 @@ static void parse_options(int argc, char *argv[]) {
   TCLAP::SwitchArg print_tour_arg("o", "printord", "print best elimination ordering in iteration");
   TCLAP::SwitchArg stag_variance_arg("", "stag_variance", "compute and print variation coefficient stagnation");
   TCLAP::SwitchArg stag_lambda_arg("", "stag_lambda", "compute and print lambda branching factor stagnation");
+  TCLAP::SwitchArg pheromone_update_es_arg("", "pheromone_update_es", "edge specific pheromone update");
   TCLAP::ValueArg<double> time_limit_arg("t", "time", "terminate after n seconds (after last iteration is finished)", false, time_limit, "double");
   TCLAP::SwitchArg simple_as_arg("", "simple", "use Simple Ant System");
   TCLAP::ValueArg<double> elitist_as_arg("", "elitist", "use Elitist Ant System with given weight", false, elitist_weight, "double");
@@ -95,6 +98,7 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(print_tour_arg);
   cmd.add(stag_variance_arg);
   cmd.add(stag_lambda_arg);
+  cmd.add(pheromone_update_es_arg);
   cmd.add(time_limit_arg);
   cmd.add(maxmin_frequency_arg);
   cmd.add(maxmin_a_arg);
@@ -130,6 +134,8 @@ static void parse_options(int argc, char *argv[]) {
   acs_q0 = acs_q0_arg.getValue();
   acs_epsilon = acs_epsilon_arg.getValue();
 
+  pheromone_update_es = pheromone_update_es_arg.isSet();
+
   if(stag_variance_arg.isSet()) {
     stagnation_measure = AntColonyConfiguration::STAG_VARIATION_COEFFICIENT;
   } else if(stag_lambda_arg.isSet()) {
@@ -162,14 +168,14 @@ static heuristicf get_heuristic_function() {
 template <class T> OptimizationProblem *get_tree_problem(heuristicf heuristic_function) {
   OptimizationProblem *op;
   T &graph1 = (T &) Parser::parse_dimacs<T>(filepath.c_str());
-  op = new TreeDecompProblem<T>(&graph1, heuristic_function);
+  op = new TreeDecompProblem<T>(&graph1, heuristic_function, pheromone_update_es);
   return op;
 }
 
 template <class T> OptimizationProblem *get_hypertree_problem(heuristicf heuristic_function) {
   OptimizationProblem *op;
   HyperGraph &hypergraph = Parser::parse_hypertreelib(filepath.c_str());
-  op = new HyperTreeDecompProblem<T>(&hypergraph, heuristic_function);
+  op = new HyperTreeDecompProblem<T>(&hypergraph, heuristic_function, pheromone_update_es);
   return op;
 }
 
