@@ -221,7 +221,11 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     }
 
     double pheromone_update(unsigned int v, double tour_length) {
-      return 1.0 / (vertex_weight_[v] + 1.0) * (1.0 / tour_length);
+      if (pheromone_update_es_) {
+        return 1.0 / (vertex_weight_[v] + 1.0) * (1.0 / tour_length);
+      } else {
+        return 1.0 / tour_length;
+      }
     }
 
     void added_vertex_to_tour(unsigned int vertex) {
@@ -241,7 +245,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
 
     std::vector<unsigned int> perturbate(const std::vector<unsigned int> &solution) {
       std::vector<unsigned int> new_solution = solution;
-      
+
       unsigned int max_clique_perturbation = random_number(2);
       if(max_clique_perturbation) {
         std::vector<unsigned int> max_cliques = get_max_clique_positions<T>(*graph_, solution);
@@ -265,10 +269,10 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
 
     std::vector<unsigned int> apply_local_search(const std::vector<unsigned int> &tour) {
       /*MaxCliqueRandomNeighbour<T> neighbourhood(*graph_, tour);
-      DecompLocalSearch local_search(tour, *this, neighbourhood);
-      IterativeLocalSearch search(&local_search, this);
-      search.run(100, 10);
-      return local_search.get_best_so_far_solution();*/
+        DecompLocalSearch local_search(tour, *this, neighbourhood);
+        IterativeLocalSearch search(&local_search, this);
+        search.run(100, 10);
+        return local_search.get_best_so_far_solution();*/
       MaxCliqueNeighbourhood<T> neighbourhood(*graph_, tour);
       HillClimbing local_search(tour, *this, neighbourhood);
       local_search.search_iterations_without_improve(1);
