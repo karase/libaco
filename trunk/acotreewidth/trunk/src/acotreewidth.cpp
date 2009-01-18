@@ -31,8 +31,8 @@ static AntColonyConfiguration::LocalSearchType local_search = AntColonyConfigura
 static double elitist_weight = 2.0;
 static unsigned int ranked_ants = 1;
 
-static unsigned int maxmin_frequency = 5;
-static double maxmin_a = 2.0;
+static unsigned int maxmin_frequency = 3;
+static double maxmin_a = 5.0;
 
 static double acs_q0 = 0.5;
 static double acs_epsilon = 0.1;

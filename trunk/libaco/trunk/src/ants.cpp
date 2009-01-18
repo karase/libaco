@@ -430,8 +430,8 @@ RankBasedAntColonyConfiguration::RankBasedAntColonyConfiguration() : AntColonyCo
 }
 
 MaxMinAntColonyConfiguration::MaxMinAntColonyConfiguration() : AntColonyConfiguration() {
-  best_so_far_frequency = 5;
-  a = 2;
+  best_so_far_frequency = 3;
+  a = 5;
 }
 
 ACSAntColonyConfiguration::ACSAntColonyConfiguration() : AntColonyConfiguration() {
