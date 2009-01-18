@@ -42,6 +42,8 @@ namespace Heuristic {
   double min_fill(const Graph &graph, unsigned int vertex);
 }
 
+enum LocalSearchType { NO_LS, HILL_CLIMBING, ITERATED_LS };
+
 template <class T> std::vector<unsigned int> get_max_clique_positions(const T &graph, const std::vector<unsigned int> &solution) {
   unsigned int max_clique = 0;
   std::vector<unsigned int> max_clique_positions;
@@ -174,14 +176,16 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     heuristicf heuristic_; 
     unsigned int vertices_eliminated_;
     bool pheromone_update_es_;
+    LocalSearchType ls_type_;
   public:
-    DecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false) {
+    DecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false, LocalSearchType ls_type=HILL_CLIMBING) {
       graph_ = graph;
       elim_graph_ = new EliminationGraph<T>(*graph);
       vertex_weight_.reserve(graph->number_of_vertices());
       heuristic_ = heuristic;
       vertices_eliminated_ = 0;
       pheromone_update_es_ = pheromone_update_es;
+      ls_type_ = ls_type;
     }
 
     ~DecompProblem() {
@@ -268,15 +272,19 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     }
 
     std::vector<unsigned int> apply_local_search(const std::vector<unsigned int> &tour) {
-      /*MaxCliqueRandomNeighbour<T> neighbourhood(*graph_, tour);
+      if (ls_type_ == HILL_CLIMBING) {
+        MaxCliqueRandomNeighbour<T> neighbourhood(*graph_, tour);
         DecompLocalSearch local_search(tour, *this, neighbourhood);
         IterativeLocalSearch search(&local_search, this);
         search.run(100, 10);
-        return local_search.get_best_so_far_solution();*/
-      MaxCliqueNeighbourhood<T> neighbourhood(*graph_, tour);
-      HillClimbing local_search(tour, *this, neighbourhood);
-      local_search.search_iterations_without_improve(1);
-      return local_search.get_best_so_far_solution();
+        return local_search.get_best_so_far_solution();
+      } else if(ls_type_ == ITERATED_LS) {
+        MaxCliqueNeighbourhood<T> neighbourhood(*graph_, tour);
+        HillClimbing local_search(tour, *this, neighbourhood);
+        local_search.search_iterations_without_improve(1);
+        return local_search.get_best_so_far_solution();
+      }
+      return tour;
     }
 
     void cleanup() {
@@ -290,7 +298,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
 
 template <class T> class TreeDecompProblem : public DecompProblem<T> {
   public:
-    TreeDecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false) : DecompProblem<T>(graph, heuristic, pheromone_update_es) {
+    TreeDecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false, LocalSearchType ls_type=HILL_CLIMBING) : DecompProblem<T>(graph, heuristic, pheromone_update_es, ls_type) {
     }
 
     unsigned int compute_width(const std::vector<unsigned int> &tour) {
@@ -315,7 +323,7 @@ template <class T> class HyperTreeDecompProblem : public DecompProblem<T> {
   private:
     HyperGraph *hypergraph_;
   public:
-    HyperTreeDecompProblem(HyperGraph *hypergraph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false) : DecompProblem<T>(&hypergraph->get_primal_graph<T>(), heuristic, pheromone_update_es) {
+    HyperTreeDecompProblem(HyperGraph *hypergraph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false, LocalSearchType ls_type=HILL_CLIMBING) : DecompProblem<T>(&hypergraph->get_primal_graph<T>(), heuristic, pheromone_update_es, ls_type) {
       hypergraph_ = hypergraph;
     }
 

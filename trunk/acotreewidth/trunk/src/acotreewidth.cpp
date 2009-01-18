@@ -38,6 +38,7 @@ static double acs_q0 = 0.5;
 static double acs_epsilon = 0.1;
 
 static bool pheromone_update_es = false;
+static LocalSearchType ls_type = NO_LS;
 
 static AntColony<Ant> *colony;
 
@@ -83,6 +84,8 @@ static void parse_options(int argc, char *argv[]) {
   TCLAP::SwitchArg no_ls_arg("", "no_ls", "perform no local search");
   TCLAP::SwitchArg it_best_ls_arg("", "it_best_ls", "perform local search only on iteration best ant");
   TCLAP::SwitchArg ls_arg("", "ls", "perform local search on all ants");
+  TCLAP::SwitchArg hillclimbing_arg("", "hillclimbing", "perform local search on all ants", true);
+  TCLAP::SwitchArg iteratedls_arg("", "iteratedls", "perform local search on all ants");
 
   cmd.add(ants_arg);
   cmd.add(iterations_arg);
@@ -108,6 +111,8 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(no_ls_arg);
   cmd.add(it_best_ls_arg);
   cmd.add(ls_arg);
+  cmd.add(hillclimbing_arg);
+  cmd.add(iteratedls_arg);
   cmd.parse(argc, argv);
   ants = ants_arg.getValue();
   iterations = iterations_arg.getValue();
@@ -135,6 +140,12 @@ static void parse_options(int argc, char *argv[]) {
   acs_epsilon = acs_epsilon_arg.getValue();
 
   pheromone_update_es = pheromone_update_es_arg.isSet();
+  
+  if(iteratedls_arg.isSet()) {
+    ls_type = ITERATED_LS;
+  } else if(hillclimbing_arg.isSet()) {
+    ls_type = HILL_CLIMBING;
+  }
 
   if(stag_variance_arg.isSet()) {
     stagnation_measure = AntColonyConfiguration::STAG_VARIATION_COEFFICIENT;
@@ -168,14 +179,14 @@ static heuristicf get_heuristic_function() {
 template <class T> OptimizationProblem *get_tree_problem(heuristicf heuristic_function) {
   OptimizationProblem *op;
   T &graph1 = (T &) Parser::parse_dimacs<T>(filepath.c_str());
-  op = new TreeDecompProblem<T>(&graph1, heuristic_function, pheromone_update_es);
+  op = new TreeDecompProblem<T>(&graph1, heuristic_function, pheromone_update_es, ls_type);
   return op;
 }
 
 template <class T> OptimizationProblem *get_hypertree_problem(heuristicf heuristic_function) {
   OptimizationProblem *op;
   HyperGraph &hypergraph = Parser::parse_hypertreelib(filepath.c_str());
-  op = new HyperTreeDecompProblem<T>(&hypergraph, heuristic_function, pheromone_update_es);
+  op = new HyperTreeDecompProblem<T>(&hypergraph, heuristic_function, pheromone_update_es, ls_type);
   return op;
 }
 
