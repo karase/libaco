@@ -384,7 +384,7 @@ template <class T> class HyperTreeDecompProblem : public DecompProblem<T> {
       return edges;
     }
 
-    /*std::map<unsigned int,double> get_feasible_start_vertices() {
+    std::map<unsigned int,double> get_feasible_start_vertices() {
       std::map<unsigned int,double> vertices;
       for(unsigned int i=0;i<DecompProblem<T>::graph_->number_of_vertices();i++) {
         std::vector<unsigned int> clique = DecompProblem<T>::graph_->get_neighbours(i);
@@ -404,7 +404,7 @@ template <class T> class HyperTreeDecompProblem : public DecompProblem<T> {
         }
       }
       return vertices;
-    }*/
+    }
 };
 
 class FileNotFoundException : public std::exception {
