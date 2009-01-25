@@ -167,7 +167,7 @@ class DecompLocalSearch : public LocalSearch {
     DecompLocalSearch(std::vector<unsigned int> initial_solution, EvaluationFunction &eval_func, Neighbourhood &neighbourhood);
 };
 
-template <class T> class DecompProblem : public OptimizationProblem, public EvaluationFunction, public PerturbationFunction {
+template <class T> class DecompProblem : public OptimizationProblem, public EvaluationFunction, public IterativeLocalSearchClient {
   protected:
     T *graph_;
     EliminationGraph<T> *elim_graph_;
@@ -277,6 +277,10 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
         }
       }
       return new_solution;
+    }
+
+    bool is_solution_accepted(double new_quality, double best_quality) {
+      return ((1.0 / new_quality) < ((1.0 / best_quality)+3));
     }
 
     void set_iteratedls_parameters(unsigned int iterations_without_improve, unsigned int ls_iterations_without_improve) {
