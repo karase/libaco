@@ -115,9 +115,9 @@ void HillClimbing::search_neighbourhood() {
   neighbourhood_->reset();
 }
 
-IterativeLocalSearch::IterativeLocalSearch(LocalSearch *local_search, PerturbationFunction *perturbation_func) {
+IterativeLocalSearch::IterativeLocalSearch(LocalSearch *local_search, IterativeLocalSearchClient *it_ls_client) {
   local_search_ = local_search;
-  perturbation_func_ = perturbation_func;
+  it_ls_client_ = it_ls_client;
   best_solution_ = local_search->get_best_so_far_solution();
   best_quality_ = local_search->get_best_so_far_quality();
 }
@@ -125,7 +125,7 @@ IterativeLocalSearch::IterativeLocalSearch(LocalSearch *local_search, Perturbati
 void IterativeLocalSearch::run(int iterations_without_improve, int ls_iterations_without_improve) {
   std::vector<unsigned int> best_solution = local_search_->get_best_so_far_solution();
   std::vector<unsigned int> next_solution;
-  double best_quality = local_search_->get_best_so_far_quality();
+  double best_quality_ = local_search_->get_best_so_far_quality();
   int no_improve_counter = 0;
   while(no_improve_counter < iterations_without_improve) {
     local_search_->search_iterations_without_improve(ls_iterations_without_improve);
@@ -140,11 +140,11 @@ void IterativeLocalSearch::run(int iterations_without_improve, int ls_iterations
       no_improve_counter++;
     }
 
-    if((1.0 / new_quality) < ((1.0 / best_quality_) + 3)) {
+    if(it_ls_client_->is_solution_accepted(new_quality, best_quality_)) {
       next_solution = new_solution;
     }
 
-    next_solution = perturbation_func_->perturbate(next_solution);
+    next_solution = it_ls_client_->perturbate(next_solution);
     local_search_->set_solution(next_solution);
   }
 }

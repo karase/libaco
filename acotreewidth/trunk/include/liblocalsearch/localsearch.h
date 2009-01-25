@@ -33,10 +33,11 @@ class EvaluationFunction {
     virtual double eval_solution(const std::vector<unsigned int> &solution) = 0;
 };
 
-class PerturbationFunction {
+class IterativeLocalSearchClient {
   public:
-    virtual ~PerturbationFunction() {}
+    virtual ~IterativeLocalSearchClient() {}
     virtual std::vector<unsigned int> perturbate(const std::vector<unsigned int> &solution) = 0;
+    virtual bool is_solution_accepted(double new_quality, double best_quality) = 0;
 };
 
 class LocalSearch {
@@ -68,11 +69,11 @@ class HillClimbing : public LocalSearch {
 class IterativeLocalSearch {
   private:
     LocalSearch *local_search_;
-    PerturbationFunction *perturbation_func_;
+    IterativeLocalSearchClient *it_ls_client_;
     std::vector<unsigned int> best_solution_;
     double best_quality_;
   public:
-    IterativeLocalSearch(LocalSearch *local_search, PerturbationFunction *perturbation_func);
+    IterativeLocalSearch(LocalSearch *local_search, IterativeLocalSearchClient *it_ls_client);
     void run(int iterations_without_improve=100, int ls_iteration_without_improve=10);
     std::vector<unsigned int> get_best_solution();
 };
