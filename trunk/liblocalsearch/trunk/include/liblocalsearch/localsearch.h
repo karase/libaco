@@ -69,7 +69,10 @@ class IterativeLocalSearch {
   private:
     LocalSearch *local_search_;
     PerturbationFunction *perturbation_func_;
+    std::vector<unsigned int> best_solution_;
+    double best_quality_;
   public:
     IterativeLocalSearch(LocalSearch *local_search, PerturbationFunction *perturbation_func);
     void run(int iterations_without_improve=100, int ls_iteration_without_improve=10);
+    std::vector<unsigned int> get_best_solution();
 };

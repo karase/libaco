@@ -258,18 +258,22 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
       if(max_clique_perturbation) {
         std::vector<unsigned int> max_cliques = get_max_clique_positions<T>(*graph_, solution);
         for(unsigned int i=0;i<max_cliques.size();i++) {
-          unsigned int swap_pos = random_number(new_solution.size());
+          /*unsigned int swap_pos = random_number(new_solution.size());
           unsigned int tmp = new_solution[max_cliques[i]];
           new_solution[max_cliques[i]] = new_solution[swap_pos];
-          new_solution[swap_pos] = tmp;
+          new_solution[swap_pos] = tmp;*/
+          unsigned int tmp = new_solution[max_cliques[i]];
+          new_solution.erase(new_solution.begin()+max_cliques[i]);
+          unsigned int ins_pos = random_number(new_solution.size());
+          new_solution.insert(new_solution.begin()+ins_pos, tmp);
         }
       } else {
-        for(unsigned int i=0;i<5;i++) {
+        for(unsigned int i=0;i<2;i++) {
           unsigned int v1 = random_number(new_solution.size());
-          unsigned int v2 = random_number(new_solution.size());
           unsigned int tmp = new_solution[v1];
-          new_solution[v1] = new_solution[v2];
-          new_solution[v2] = tmp;
+          new_solution.erase(new_solution.begin()+v1);
+          unsigned int v2 = random_number(new_solution.size());
+          new_solution.insert(new_solution.begin()+v2, tmp);
         }
       }
       return new_solution;
@@ -286,7 +290,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
         DecompLocalSearch local_search(tour, *this, neighbourhood);
         IterativeLocalSearch search(&local_search, this);
         search.run(iterations_without_improve_, ls_iterations_without_improve_);
-        return local_search.get_best_so_far_solution();
+        return search.get_best_solution();
       } else if(ls_type_ == HILL_CLIMBING) {
         MaxCliqueNeighbourhood<T> neighbourhood(*graph_, tour);
         HillClimbing local_search(tour, *this, neighbourhood);
