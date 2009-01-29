@@ -62,7 +62,9 @@
 ///
 /// For a far more detailed explanation on how to make use of this library take a look at the tutorial at:
 ///
-///It shows step-by-step how to implement a program with libaco for finding solutions to arbitrary instances of the Travelling Salesman Problem.
+/// http://code.google.com/p/libaco/wiki/Tutorial
+///
+/// It shows step-by-step how to implement a program with libaco for finding solutions to arbitrary instances of the Travelling Salesman Problem.
 
 class PheromoneMatrix : protected Matrix<double> {
   protected:
@@ -70,12 +72,15 @@ class PheromoneMatrix : protected Matrix<double> {
     double initial_pheromone_;
   public:
     PheromoneMatrix(int vertices, double evaporation_rate, double initial_pheromone);
+    virtual ~PheromoneMatrix() {}
     double get(unsigned int v, unsigned int w);
     virtual void add(unsigned int v, unsigned int w, double amount);
     virtual void evaporate(unsigned int v, unsigned int w);
     void evaporate_all();
     double get_evaporation_rate();
     unsigned int size();
+    double lambda_branching_factor(unsigned int v, double lambda);
+    double average_lambda_branching_factor(double lambda);
 };
 
 class MaxMinPheromoneMatrix : public PheromoneMatrix {
@@ -125,6 +130,7 @@ class Tour {
 /// Interface to the problem-specific logic a client must supply.
 class OptimizationProblem {
   public:
+    virtual ~OptimizationProblem() {}
     /// Returns the maximum number of nodes in a tour.
     ///
     /// \return maximum number of nodes in a tour.
@@ -189,14 +195,14 @@ class Ant {
     void update_tour_length(OptimizationProblem &op);
     void add_vertex_to_tour(OptimizationProblem &op, unsigned int vertex);
     std::multimap<double,unsigned int,MultiMapComp> get_feasible_vertices(OptimizationProblem &op, PheromoneMatrix &pheromones, double alpha, double beta);
-    unsigned int current_vertex();
+    int current_vertex();
     unsigned int choose_next_vertex_with_likelihood(std::multimap<double,unsigned int,MultiMapComp> probabilities);
   public:
     Ant(unsigned int vertices);
     Ant(const Ant &ant);
     Ant &operator=(const Ant &ant);
     bool operator<(const Ant &ant);
-    ~Ant();
+    virtual ~Ant();
     double get_tour_length();
     std::vector<unsigned int> get_vertices();
     void reset();
@@ -229,12 +235,20 @@ class ACSAnt : public Ant {
     void set_q0(double q0);
 };
 
+/// Constructs a solution based on the heuristic information alone and computes the average pheromone update per edge.
+///
+/// Is useful for finding a initial pheromone value. A good initial pheromone value might be number_of_ants * average_pheromone_update
+double compute_average_pheromone_update(OptimizationProblem &op);
+
 /// Base class of all ACO configurations.
 ///
 /// Includes all configuration parameters all ACO variants have in common.
 class AntColonyConfiguration {
   public:
-    enum LocalSearchType { NONE, ITERATION_BEST, ALL };
+    enum LocalSearchType { LS_NONE, LS_ITERATION_BEST, LS_ALL };
+
+    enum StagnationMeasureType { STAG_NONE, STAG_VARIATION_COEFFICIENT, STAG_LAMBDA_BRANCHING_FACTOR };
+
     /// Number of ants that construct a tour in every iteration.
     unsigned int number_of_ants;
     /// Weight of pheromone value in tour construction.
@@ -242,7 +256,7 @@ class AntColonyConfiguration {
     /// Weight of heuristic information in tour construction.
     double beta;
     /// Defines whether the stagnation measure shall be computed.
-    bool stagnation_measure;
+    StagnationMeasureType stagnation_measure;
     /// Defines how fast pheromone shall evaporate.
     double evaporation_rate;
     /// The initial amount of pheromone deposited on the edges.
@@ -317,10 +331,10 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
 
     void apply_local_search() {
       ants_->sort();
-      if(local_search_ == AntColonyConfiguration::ITERATION_BEST) {
+      if(local_search_type_ == AntColonyConfiguration::LS_ITERATION_BEST) {
         typename std::list<T>::iterator it_best = ants_->begin();
         (*it_best).apply_local_search(*problem_);
-      } else if(local_search_ == AntColonyConfiguration::ALL) {
+      } else if(local_search_type_ == AntColonyConfiguration::LS_ALL) {
         for(typename std::list<T>::iterator it=ants_->begin();it!=ants_->end();it++) {
           T &ant = (*it);
           ant.apply_local_search(*problem_);
@@ -350,7 +364,7 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       }
     }
 
-    void update_stagnation_measure() {
+    double compute_variation_coefficient() {
       double average = 0.0;
       double standard_deviation = 0.0;
       for(typename std::list<T>::iterator it=ants_->begin();it!=ants_->end();it++) {
@@ -363,7 +377,19 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       }
       standard_deviation *= 1.0 / ants_->size();
       standard_deviation = sqrt(standard_deviation);
-      stagnation_measure_ = standard_deviation / average;
+      return standard_deviation / average;
+    }
+
+    double compute_lambda_branching_factor() {
+      return pheromones_->average_lambda_branching_factor(0.05);
+    }
+
+    void update_stagnation_measure() {
+      if(stagnation_measure_type_ == AntColonyConfiguration::STAG_VARIATION_COEFFICIENT) {
+        stagnation_measure_ = compute_variation_coefficient();
+      } else if(stagnation_measure_type_ == AntColonyConfiguration::STAG_LAMBDA_BRANCHING_FACTOR) {
+        stagnation_measure_ = compute_lambda_branching_factor();
+      }
     }
 
     virtual void update_pheromones() = 0;
@@ -371,8 +397,8 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
     P *pheromones_;
     double alpha_;
     double beta_;
-    bool compute_stagnation_measure_;
-    AntColonyConfiguration::LocalSearchType local_search_;
+    AntColonyConfiguration::LocalSearchType local_search_type_;
+    AntColonyConfiguration::StagnationMeasureType stagnation_measure_type_;
     double stagnation_measure_;
     std::list<T> *ants_;
     OptimizationProblem *problem_;
@@ -388,8 +414,8 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       pheromones_ = new P(problem->number_of_vertices()+1, config.evaporation_rate, config.initial_pheromone);
       alpha_ = config.alpha;
       beta_ = config.beta;
-      compute_stagnation_measure_ = config.stagnation_measure;
-      local_search_ = config.local_search;
+      local_search_type_ = config.local_search;
+      stagnation_measure_type_ = config.stagnation_measure;
       stagnation_measure_ = 0.0;
       best_so_far_ = new T(problem->get_max_tour_size());
       best_iteration_ = new T(problem->get_max_tour_size());
@@ -397,7 +423,7 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       best_iteration_no_ls_ = new T(problem->get_max_tour_size());
     }
 
-    ~AntColony() {
+    virtual ~AntColony() {
       delete problem_;
       delete ants_;
       delete pheromones_;
@@ -412,7 +438,7 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       update_best_tours_no_ls();
       apply_local_search();
       update_best_tours();
-      if(compute_stagnation_measure_) {
+      if(stagnation_measure_type_ != AntColonyConfiguration::STAG_NONE) {
         update_stagnation_measure();
       }
       update_pheromones();

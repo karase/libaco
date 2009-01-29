@@ -14,7 +14,7 @@ static double beta = 1.0;
 static double rho = 0.1;
 static double initial_pheromone = 0.1;
 static bool print_tour_flag = false;
-static bool print_stagnation_flag = false;
+static AntColonyConfiguration::StagnationMeasureType stagnation_measure = AntColonyConfiguration::STAG_NONE;
 static double time_limit = DBL_MAX;
 static bool simple_as_flag = false;
 static bool elitist_as_flag = false;
@@ -49,7 +49,8 @@ static void parse_options(int argc, char *argv[]) {
   TCLAP::ValuesConstraint<unsigned int> allowed_values( allowed );
   TCLAP::ValueArg<std::string> filepath_arg("f", "file", "path to the input file", true, "", "filepath");
   TCLAP::SwitchArg print_tour_arg("o", "printord", "print best elimination ordering in iteration");
-  TCLAP::SwitchArg print_stagnation_arg("s", "stagnation", "print stagnation measure");
+  TCLAP::SwitchArg stag_variance_arg("", "stag_variance", "compute and print variation coefficient stagnation");
+    TCLAP::SwitchArg stag_lambda_arg("", "stag_lambda", "compute and print lambda branching factor stagnation");
   TCLAP::ValueArg<double> time_limit_arg("t", "time", "terminate after n seconds (after last iteration is finished)", false, time_limit, "double");
   TCLAP::SwitchArg simple_as_arg("", "simple", "use Simple Ant System");
   TCLAP::ValueArg<double> elitist_as_arg("", "elitist", "use Elitist Ant System with given weight", false, elitist_weight, "double");
@@ -74,7 +75,8 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(initial_pheromone_arg);
   cmd.add(filepath_arg);
   cmd.add(print_tour_arg);
-  cmd.add(print_stagnation_arg);
+  cmd.add(stag_variance_arg);
+  cmd.add(stag_lambda_arg);
   cmd.add(time_limit_arg);
   cmd.add(maxmin_frequency_arg);
   cmd.add(maxmin_a_arg);
@@ -90,7 +92,6 @@ static void parse_options(int argc, char *argv[]) {
   initial_pheromone = initial_pheromone_arg.getValue();
   filepath = filepath_arg.getValue();
   print_tour_flag = print_tour_arg.getValue();
-  print_stagnation_flag = print_stagnation_arg.getValue();
   time_limit = time_limit_arg.getValue();
   simple_as_flag = simple_as_arg.isSet();
   elitist_as_flag = elitist_as_arg.isSet();
@@ -103,13 +104,19 @@ static void parse_options(int argc, char *argv[]) {
   acs_as_flag = acs_as_arg.isSet();
   acs_q0 = acs_q0_arg.getValue();
   acs_epsilon = acs_epsilon_arg.getValue();
+
+  if(stag_variance_arg.isSet()) {
+    stagnation_measure = AntColonyConfiguration::STAG_VARIATION_COEFFICIENT;
+  } else if(stag_lambda_arg.isSet()) {
+    stagnation_measure = AntColonyConfiguration::STAG_LAMBDA_BRANCHING_FACTOR;
+  }
 }
 
 static void set_config(AntColonyConfiguration &config) {
   config.number_of_ants = ants;
   config.alpha = alpha;
   config.beta = beta;
-  config.stagnation_measure = print_stagnation_flag;
+  config.stagnation_measure = stagnation_measure;
   config.evaporation_rate = rho;
   config.initial_pheromone = initial_pheromone;
 }
@@ -195,7 +202,7 @@ int main(int argc, char *argv[]) {
   colony = get_ant_colony(problem);
 
   std::cout << "iter\ttime\tbest\tbest_it";
-  std::cout << (print_stagnation_flag ? "\tstagnation" : "");
+  std::cout << ((stagnation_measure != AntColonyConfiguration::STAG_NONE) ? "\tstagnation" : "");
   std::cout << (print_tour_flag ? "\tordering" : "");
   std::cout << std::endl;
   timer();
@@ -205,9 +212,10 @@ int main(int argc, char *argv[]) {
     std::cout << timer() << "\t";
     std::cout << colony->get_best_tour_length() << "\t";
     std::cout << colony->get_best_tour_length_in_iteration();
-    if(print_stagnation_flag) {
-      std::cout << "\t" << colony->get_stagnation_measure();
+    if(stagnation_measure != AntColonyConfiguration::STAG_NONE) {
+      std::cout << colony->get_stagnation_measure();
     }
+
     if(print_tour_flag) {
       std::cout << "\t";
       print_tour(colony->get_best_tour_in_iteration());
