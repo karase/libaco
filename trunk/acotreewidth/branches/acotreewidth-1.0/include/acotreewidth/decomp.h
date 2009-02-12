@@ -6,40 +6,34 @@
 #include <map>
 #include <list>
 #include <cstring>
+#include <csignal>
 #include <libaco/ants.h>
 #include <liblocalsearch/localsearch.h>
 
-template <class T> class EliminationGraph : public T {
+class EliminationGraph {
+  private:
+    int **a__;
+    int **e__;
+    bool **t__;
+    bool *eliminated__;
+    unsigned int nr_eliminations__;
+    unsigned int size__;
   public:
-    EliminationGraph(const T &graph) : T(graph) {
-    }
-
-    ~EliminationGraph() {
-    }
-
-    void eliminate(unsigned int vertex) {
-      std::vector<unsigned int> neighbours = T::get_neighbours(vertex);
-      for(unsigned int i=0;i<neighbours.size();i++) {
-        for(unsigned int j=i;j<neighbours.size();j++) {
-          if(i!=j) {
-            T::add_edge(neighbours[i],neighbours[j]);
-          }
-        }
-        T::remove_edge(vertex,neighbours[i]);
-      }
-    }
-
-    T &operator=(const T &graph) {
-      T::operator=(graph);
-      return *this;
-    }
+    EliminationGraph(const Graph &graph);
+    ~EliminationGraph();
+    void eliminate(unsigned int vertex);
+    unsigned int get_degree(unsigned int vertex) const;
+    unsigned int min_fill(unsigned int vertex) const;
+    std::vector<unsigned int> get_neighbours(unsigned int vertex) const;
+    unsigned int number_of_vertices();
+    void rollback();
 };
 
-typedef double (*heuristicf)(const Graph &graph, unsigned int vertex);
+typedef double (*heuristicf)(const EliminationGraph &graph, unsigned int vertex);
 
 namespace Heuristic {
-  double min_degree(const Graph &graph, unsigned int vertex);
-  double min_fill(const Graph &graph, unsigned int vertex);
+  double min_degree(const EliminationGraph &graph, unsigned int vertex);
+  double min_fill(const EliminationGraph &graph, unsigned int vertex);
 }
 
 enum LocalSearchType { NO_LS, HILL_CLIMBING, ITERATED_LS };
@@ -47,9 +41,9 @@ enum LocalSearchType { NO_LS, HILL_CLIMBING, ITERATED_LS };
 template <class T> std::vector<unsigned int> get_max_clique_positions(const T &graph, const std::vector<unsigned int> &solution) {
   unsigned int max_clique = 0;
   std::vector<unsigned int> max_clique_positions;
-  EliminationGraph<T> elim_graph(graph);
+  EliminationGraph elim_graph(graph);
   for(unsigned int i=0;i<solution.size();i++) {
-    unsigned int w = elim_graph.get_neighbours(solution[i]).size();
+    unsigned int w = elim_graph.get_degree(solution[i]);
 
     if(w == max_clique) {
       max_clique_positions.push_back(i);
@@ -170,7 +164,7 @@ class DecompLocalSearch : public LocalSearch {
 template <class T> class DecompProblem : public OptimizationProblem, public EvaluationFunction, public IterativeLocalSearchClient {
   protected:
     T *graph_;
-    EliminationGraph<T> *elim_graph_;
+    EliminationGraph *elim_graph_;
     std::map<unsigned int,bool> visited_vertices_;
     std::vector<double> vertex_weight_;
     heuristicf heuristic_; 
@@ -182,7 +176,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
   public:
     DecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false, LocalSearchType ls_type=HILL_CLIMBING) {
       graph_ = graph;
-      elim_graph_ = new EliminationGraph<T>(*graph);
+      elim_graph_ = new EliminationGraph(*graph);
       vertex_weight_.reserve(graph->number_of_vertices());
       heuristic_ = heuristic;
       vertices_eliminated_ = 0;
@@ -224,7 +218,12 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     }
 
     double eval_tour(const std::vector<unsigned int> &tour) {
+      static clock_t time;
+      time = clock();
       double width = compute_width(tour);
+      clock_t time_diff = clock() - time;
+      double elapsed_time = time_diff * 1.0 / CLOCKS_PER_SEC;
+      std::cout << elapsed_time << std::endl;
       return width;
     }
 
@@ -237,7 +236,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     }
 
     void added_vertex_to_tour(unsigned int vertex) {
-      vertex_weight_[vertex] = elim_graph_->get_neighbours(vertex).size() * 1.0 / (elim_graph_->number_of_vertices() - vertices_eliminated_);
+      vertex_weight_[vertex] = elim_graph_->get_degree(vertex) * 1.0 / (elim_graph_->number_of_vertices() - vertices_eliminated_);
       elim_graph_->eliminate(vertex);
       vertices_eliminated_++;
       visited_vertices_[vertex] = true;
@@ -306,7 +305,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
 
     void cleanup() {
       vertices_eliminated_ = 0;
-      *elim_graph_ = *graph_;
+      elim_graph_->rollback();
       visited_vertices_.clear();
     }
 
@@ -320,9 +319,9 @@ template <class T> class TreeDecompProblem : public DecompProblem<T> {
 
     unsigned int compute_width(const std::vector<unsigned int> &tour) {
       unsigned int width = 0;
-      EliminationGraph<T> graph(*DecompProblem<T>::graph_);
+      EliminationGraph graph(*DecompProblem<T>::graph_);
       for(unsigned int i=0;i<tour.size();i++) {
-        unsigned int w = graph.get_neighbours(tour[i]).size();
+        unsigned int w = graph.get_degree(tour[i]);
         graph.eliminate(tour[i]);
         if(w > width) {
           width = w;
@@ -350,7 +349,7 @@ template <class T> class HyperTreeDecompProblem : public DecompProblem<T> {
 
     unsigned int compute_width(const std::vector<unsigned int> &tour) {
       unsigned int width = 0;
-      EliminationGraph<T> graph(*DecompProblem<T>::graph_);
+      EliminationGraph graph(*DecompProblem<T>::graph_);
       for(unsigned int i=0;i<tour.size();i++) {
         std::vector<unsigned int> vertices = graph.get_neighbours(tour[i]);
         vertices.push_back(tour[i]);
@@ -404,7 +403,7 @@ template <class T> class HyperTreeDecompProblem : public DecompProblem<T> {
     std::map<unsigned int,double> get_feasible_start_vertices() {
       std::map<unsigned int,double> vertices;
       for(unsigned int i=0;i<DecompProblem<T>::graph_->number_of_vertices();i++) {
-        std::vector<unsigned int> clique = DecompProblem<T>::graph_->get_neighbours(i);
+        std::vector<unsigned int> clique = DecompProblem<T>::elim_graph_->get_neighbours(i);
         clique.push_back(i);
         vertices[i] = 1.0 / compute_greedy_hyperedge_covering(clique).size();
       }
@@ -415,7 +414,7 @@ template <class T> class HyperTreeDecompProblem : public DecompProblem<T> {
       std::map<unsigned int,double> vertices;
       for(unsigned int i=0;i<DecompProblem<T>::graph_->number_of_vertices();i++) {
         if (!DecompProblem<T>::visited_vertices_[i]) {
-          std::vector<unsigned int> clique = DecompProblem<T>::graph_->get_neighbours(i);
+          std::vector<unsigned int> clique = DecompProblem<T>::elim_graph_->get_neighbours(i);
           clique.push_back(i);
           vertices[i] = 1.0 / compute_greedy_hyperedge_covering(clique).size();
         }
