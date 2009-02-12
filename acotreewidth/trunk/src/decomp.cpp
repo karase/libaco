@@ -83,11 +83,13 @@ unsigned int EliminationGraph::get_degree(unsigned int vertex) const {
 unsigned int EliminationGraph::min_fill(unsigned int vertex) const {
   unsigned int min_fill = 0;
   for(unsigned int i=0;i<(e__[vertex][nr_eliminations__]-1);i++) {
-    for(unsigned int j=1;j<e__[vertex][nr_eliminations__];j++) {
-      int n1 = a__[vertex][i];
-      int n2 = a__[vertex][j];
-      if(!eliminated__[n1] && !eliminated__[n2] && !t__[n1][n2]) {
-        min_fill++;
+    int n1 = a__[vertex][i];
+    if(!eliminated__[n1]) {
+      for(unsigned int j=1;j<e__[vertex][nr_eliminations__];j++) {
+        int n2 = a__[vertex][j];
+        if(!eliminated__[n1] && !eliminated__[n2] && !t__[n1][n2]) {
+          min_fill++;
+        }
       }
     }
   }
