@@ -12,8 +12,8 @@
 
 class EliminationGraph {
   private:
-    int **a__;
-    int **e__;
+    unsigned int **a__;
+    unsigned int **e__;
     bool **t__;
     bool *eliminated__;
     unsigned int nr_eliminations__;
@@ -346,7 +346,7 @@ class FileNotFoundException : public std::exception {
 
 namespace Parser {
   template <class T> Graph &parse_dimacs(const char *filepath) throw(FileNotFoundException) {
-    Graph *graph;
+    Graph *graph = NULL;
     int number_of_vertices;
     int vertex_a, vertex_b;
     char problem[5];

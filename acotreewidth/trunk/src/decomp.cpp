@@ -4,16 +4,16 @@
 
 EliminationGraph::EliminationGraph(const Graph &graph) {
   size__ = graph.number_of_vertices();
-  a__ = new int*[size__];
-  e__ = new int*[size__];
+  a__ = new unsigned int*[size__];
+  e__ = new unsigned int*[size__];
   t__ = new bool*[size__];
   eliminated__ = new bool[size__];
   memset(eliminated__,false,sizeof(bool)*size__);
   nr_eliminations__ = 0;
 
   for(unsigned int k=0;k<size__;k++) {
-    a__[k] = new int[size__];
-    e__[k] = new int[size__+1];
+    a__[k] = new unsigned int[size__];
+    e__[k] = new unsigned int[size__+1];
     t__[k] = new bool[size__];
     memset(t__[k],false,sizeof(bool)*size__);
   }
@@ -47,8 +47,8 @@ void EliminationGraph::eliminate(unsigned int vertex) {
     e__[k][nr_eliminations__+1] = e__[k][nr_eliminations__];
   }
 
-  for(int i=0;i<e__[vertex][nr_eliminations__];i++) {
-    for(int j=i+1;j<e__[vertex][nr_eliminations__];j++) {
+  for(unsigned int i=0;i<e__[vertex][nr_eliminations__];i++) {
+    for(unsigned int j=i+1;j<e__[vertex][nr_eliminations__];j++) {
       int n1 = a__[vertex][i];
       int n2 = a__[vertex][j];
       if(!eliminated__[n1] && !eliminated__[n2] && !t__[n1][n2]) {
@@ -70,7 +70,7 @@ void EliminationGraph::eliminate(unsigned int vertex) {
 
 unsigned int EliminationGraph::get_degree(unsigned int vertex) const {
   unsigned int degree = 0;
-  for(int i=0;i<e__[vertex][nr_eliminations__];i++) {
+  for(unsigned int i=0;i<e__[vertex][nr_eliminations__];i++) {
     if(!eliminated__[a__[vertex][i]]) {
       degree++;
     }
@@ -80,8 +80,8 @@ unsigned int EliminationGraph::get_degree(unsigned int vertex) const {
 
 unsigned int EliminationGraph::min_fill(unsigned int vertex) const {
   unsigned int min_fill = 0;
-  for(int i=0;i<(e__[vertex][nr_eliminations__]-1);i++) {
-    for(int j=1;j<e__[vertex][nr_eliminations__];j++) {
+  for(unsigned int i=0;i<(e__[vertex][nr_eliminations__]-1);i++) {
+    for(unsigned int j=1;j<e__[vertex][nr_eliminations__];j++) {
       int n1 = a__[vertex][i];
       int n2 = a__[vertex][j];
       if(!eliminated__[n1] && !eliminated__[n2] && !t__[n1][n2]) {
@@ -94,7 +94,7 @@ unsigned int EliminationGraph::min_fill(unsigned int vertex) const {
 
 std::vector<unsigned int> EliminationGraph::get_neighbours(unsigned int vertex) const {
   std::vector<unsigned int> neighbours;
-  for(int i=0;i<e__[vertex][nr_eliminations__];i++) {
+  for(unsigned int i=0;i<e__[vertex][nr_eliminations__];i++) {
     if(!eliminated__[a__[vertex][i]]) {
       neighbours.push_back(a__[vertex][i]);
     }
