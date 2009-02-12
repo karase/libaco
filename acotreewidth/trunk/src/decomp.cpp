@@ -48,20 +48,22 @@ void EliminationGraph::eliminate(unsigned int vertex) {
   }
 
   for(unsigned int i=0;i<e__[vertex][nr_eliminations__];i++) {
-    for(unsigned int j=i+1;j<e__[vertex][nr_eliminations__];j++) {
-      int n1 = a__[vertex][i];
-      int n2 = a__[vertex][j];
-      if(!eliminated__[n1] && !eliminated__[n2] && !t__[n1][n2]) {
-        t__[n1][n2] = true;
-        t__[n2][n1] = true;
-        a__[n1][e__[n1][nr_eliminations__+1]] = n2;
-        a__[n2][e__[n2][nr_eliminations__+1]] = n1;
-        e__[n1][nr_eliminations__+1]++;
-        e__[n2][nr_eliminations__+1]++;
+    int n1 = a__[vertex][i];
+    if(!eliminated__[n1]) {
+      for(unsigned int j=i+1;j<e__[vertex][nr_eliminations__];j++) {
+        int n2 = a__[vertex][j];
+        if(!eliminated__[n1] && !eliminated__[n2] && !t__[n1][n2]) {
+          t__[n1][n2] = true;
+          t__[n2][n1] = true;
+          a__[n1][e__[n1][nr_eliminations__+1]] = n2;
+          a__[n2][e__[n2][nr_eliminations__+1]] = n1;
+          e__[n1][nr_eliminations__+1]++;
+          e__[n2][nr_eliminations__+1]++;
+        }
       }
     }
-    t__[vertex][i] = false;
-    t__[i][vertex] = false;
+    t__[vertex][n1] = false;
+    t__[n1][vertex] = false;
   }
 
   nr_eliminations__++;
