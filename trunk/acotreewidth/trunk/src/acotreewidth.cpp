@@ -220,7 +220,7 @@ static void set_initial_pheromone(OptimizationProblem *problem, AntColonyConfigu
 }
 
 AntColony<Ant> *get_ant_colony(OptimizationProblem *problem) {
-  AntColony<Ant> *colony;
+  AntColony<Ant> *colony = NULL;
 
   if(simple_as_flag) {
     AntColonyConfiguration config;
@@ -300,7 +300,7 @@ int main(int argc, char *argv[]) {
   heuristicf heuristic_function = get_heuristic_function();
 
 
-  OptimizationProblem *problem;
+  OptimizationProblem *problem = NULL;
 
   try {
     if(hypergraph_flag) {
