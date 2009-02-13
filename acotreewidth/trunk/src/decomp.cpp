@@ -80,7 +80,7 @@ unsigned int EliminationGraph::eval_ordering(const std::vector<unsigned int> &or
   for(unsigned int j=0;j<ordering.size();j++) {
     unsigned int vertex = ordering[j];
     unsigned int min_elim = UINT_MAX;
-    unsigned int next_vertex;
+    unsigned int next_vertex = 0;
     for(unsigned int k=0;k<degrees__[vertex];k++) {
       unsigned int neighbour = a__[vertex][k];
       if(!eliminated__[neighbour]) {
