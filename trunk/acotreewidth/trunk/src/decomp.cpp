@@ -5,7 +5,8 @@
 EliminationGraph::EliminationGraph(const Graph &graph) {
   size__ = graph.number_of_vertices();
   a__ = new unsigned int*[size__];
-  e__ = new unsigned int*[size__];
+  initial_degrees__ = new unsigned int[size__];
+  degrees__ = new unsigned int[size__];
   t__ = new bool*[size__];
   eliminated__ = new bool[size__];
   memset(eliminated__,false,sizeof(bool)*size__);
@@ -13,7 +14,6 @@ EliminationGraph::EliminationGraph(const Graph &graph) {
 
   for(unsigned int k=0;k<size__;k++) {
     a__[k] = new unsigned int[size__];
-    e__[k] = new unsigned int[size__+1];
     t__[k] = new bool[size__];
     memset(t__[k],false,sizeof(bool)*size__);
   }
@@ -26,39 +26,36 @@ EliminationGraph::EliminationGraph(const Graph &graph) {
       t__[i][neighbours[j]] = true;
       t__[neighbours[j]][i] = true;
     }
-    e__[i][0] = neighbours.size();
+    initial_degrees__[i] = neighbours.size();
   }
+  memcpy(degrees__, initial_degrees__, sizeof(unsigned int)*size__);
 }
 
 EliminationGraph::~EliminationGraph() {
   for(unsigned int i=0;i<size__;i++) {
     delete[] a__[i];
-    delete[] e__[i];
     delete[] t__[i];
   }
   delete[] a__;
-  delete[] e__;
+  delete[] initial_degrees__;
+  delete[] degrees__;
   delete[] t__;
   delete[] eliminated__;
 }
 
 void EliminationGraph::eliminate(unsigned int vertex) {
-  for(unsigned int k=0;k<size__;k++) {
-    e__[k][nr_eliminations__+1] = e__[k][nr_eliminations__];
-  }
-
-  for(unsigned int i=0;i<e__[vertex][nr_eliminations__];i++) {
+  for(unsigned int i=0;i<degrees__[vertex];i++) {
     int n1 = a__[vertex][i];
     if(!eliminated__[n1]) {
-      for(unsigned int j=i+1;j<e__[vertex][nr_eliminations__];j++) {
+      for(unsigned int j=i+1;j<degrees__[vertex];j++) {
         int n2 = a__[vertex][j];
-        if(!eliminated__[n1] && !eliminated__[n2] && !t__[n1][n2]) {
+        if(!eliminated__[n2] && !t__[n1][n2]) {
           t__[n1][n2] = true;
           t__[n2][n1] = true;
-          a__[n1][e__[n1][nr_eliminations__+1]] = n2;
-          a__[n2][e__[n2][nr_eliminations__+1]] = n1;
-          e__[n1][nr_eliminations__+1]++;
-          e__[n2][nr_eliminations__+1]++;
+          a__[n1][degrees__[n1]] = n2;
+          a__[n2][degrees__[n2]] = n1;
+          degrees__[n1]++;
+          degrees__[n2]++;
         }
       }
     }
@@ -72,7 +69,7 @@ void EliminationGraph::eliminate(unsigned int vertex) {
 
 unsigned int EliminationGraph::get_degree(unsigned int vertex) const {
   unsigned int degree = 0;
-  for(unsigned int i=0;i<e__[vertex][nr_eliminations__];i++) {
+  for(unsigned int i=0;i<degrees__[vertex];i++) {
     if(!eliminated__[a__[vertex][i]]) {
       degree++;
     }
@@ -82,10 +79,10 @@ unsigned int EliminationGraph::get_degree(unsigned int vertex) const {
 
 unsigned int EliminationGraph::min_fill(unsigned int vertex) const {
   unsigned int min_fill = 0;
-  for(unsigned int i=0;i<(e__[vertex][nr_eliminations__]-1);i++) {
+  for(unsigned int i=0;i<degrees__[vertex];i++) {
     int n1 = a__[vertex][i];
     if(!eliminated__[n1]) {
-      for(unsigned int j=1;j<e__[vertex][nr_eliminations__];j++) {
+      for(unsigned int j=i+1;j<degrees__[vertex];j++) {
         int n2 = a__[vertex][j];
         if(!eliminated__[n1] && !eliminated__[n2] && !t__[n1][n2]) {
           min_fill++;
@@ -98,7 +95,7 @@ unsigned int EliminationGraph::min_fill(unsigned int vertex) const {
 
 std::vector<unsigned int> EliminationGraph::get_neighbours(unsigned int vertex) const {
   std::vector<unsigned int> neighbours;
-  for(unsigned int i=0;i<e__[vertex][nr_eliminations__];i++) {
+  for(unsigned int i=0;i<degrees__[vertex];i++) {
     if(!eliminated__[a__[vertex][i]]) {
       neighbours.push_back(a__[vertex][i]);
     }
@@ -118,11 +115,12 @@ void EliminationGraph::rollback() {
   }
 
   for(unsigned int i=0;i<size__;i++) {
-    for(unsigned int j=0;j<e__[i][nr_eliminations__];j++) {
+    for(unsigned int j=0;j<initial_degrees__[i];j++) {
       t__[i][a__[i][j]] = true;
       t__[a__[i][j]][i] = true;
     }
   }
+  memcpy(degrees__, initial_degrees__, sizeof(unsigned int)*size__);
 }
 
 std::vector<unsigned int> get_max_clique_positions(EliminationGraph &elim_graph, const std::vector<unsigned int> &solution) {
