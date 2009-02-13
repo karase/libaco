@@ -113,8 +113,11 @@ unsigned int EliminationGraph::eval_ordering(const std::vector<unsigned int> &or
     nr_eliminations__++;
     eliminated__[vertex] = true;
     vertex_neighbours_length = 0;
+
+    if(width > this->number_of_vertices()) {
+      break;
+    }
   }
-  this->rollback();
   delete[] vertex_neighbours;
   delete[] elim_positions;
   return width;
