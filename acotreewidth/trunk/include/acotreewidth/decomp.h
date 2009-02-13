@@ -13,7 +13,8 @@
 class EliminationGraph {
   private:
     unsigned int **a__;
-    unsigned int **e__;
+    unsigned int *degrees__;
+    unsigned int *initial_degrees__;
     bool **t__;
     bool *eliminated__;
     unsigned int nr_eliminations__;
