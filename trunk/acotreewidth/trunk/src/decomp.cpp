@@ -69,7 +69,7 @@ void EliminationGraph::eliminate(unsigned int vertex) {
 }
 
 unsigned int EliminationGraph::eval_ordering(const std::vector<unsigned int> &ordering) {
-  unsigned int width = UINT_MAX;
+  unsigned int width = 0;
   unsigned int *elim_positions = new unsigned int[ordering.size()];
   unsigned int *vertex_neighbours = new unsigned int[ordering.size()];
   unsigned int vertex_neighbours_length = 0;
@@ -107,7 +107,9 @@ unsigned int EliminationGraph::eval_ordering(const std::vector<unsigned int> &or
       }
     }
 
-    width = vertex_neighbours_length;
+    if(vertex_neighbours_length > width) {
+      width = vertex_neighbours_length;
+    }
     nr_eliminations__++;
     eliminated__[vertex] = true;
     vertex_neighbours_length = 0;
