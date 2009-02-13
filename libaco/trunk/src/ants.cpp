@@ -407,7 +407,6 @@ double compute_average_pheromone_update(OptimizationProblem &op) {
     pheromone_sum += op.pheromone_update(tour[i], tour_length);
   }
   double pheromone_avg = pheromone_sum / tour.size();
-  op.cleanup();
   return pheromone_avg;
 }
 
