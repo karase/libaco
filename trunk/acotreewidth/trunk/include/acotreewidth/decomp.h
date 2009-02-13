@@ -23,6 +23,7 @@ class EliminationGraph {
     EliminationGraph(const Graph &graph);
     ~EliminationGraph();
     void eliminate(unsigned int vertex);
+    unsigned int eval_ordering(const std::vector<unsigned int> &ordering);
     unsigned int get_degree(unsigned int vertex) const;
     unsigned int min_fill(unsigned int vertex) const;
     std::vector<unsigned int> get_neighbours(unsigned int vertex) const;
@@ -161,7 +162,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     }
 
     double eval_solution(const std::vector<unsigned int> &solution) {
-      return 1.0 / eval_tour(solution);
+      return 1.0 / elim_graph_->eval_ordering(solution);
     }
 
     std::vector<unsigned int> perturbate(const std::vector<unsigned int> &solution) {

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <climits>
 #include <acotreewidth/decomp.h>
 
 EliminationGraph::EliminationGraph(const Graph &graph) {
@@ -65,6 +66,56 @@ void EliminationGraph::eliminate(unsigned int vertex) {
 
   nr_eliminations__++;
   eliminated__[vertex] = true;
+}
+
+unsigned int EliminationGraph::eval_ordering(const std::vector<unsigned int> &ordering) {
+  unsigned int width = UINT_MAX;
+  unsigned int *elim_positions = new unsigned int[ordering.size()];
+  unsigned int *vertex_neighbours = new unsigned int[ordering.size()];
+  unsigned int vertex_neighbours_length = 0;
+  for(unsigned int i=0;i<ordering.size();i++) {
+    elim_positions[ordering[i]] = i;
+  }
+
+  for(unsigned int j=0;j<ordering.size();j++) {
+    unsigned int vertex = ordering[j];
+    unsigned int min_elim = UINT_MAX;
+    unsigned int next_vertex;
+    for(unsigned int k=0;k<degrees__[vertex];k++) {
+      unsigned int neighbour = a__[vertex][k];
+      if(!eliminated__[neighbour]) {
+        vertex_neighbours[vertex_neighbours_length] = neighbour;
+        vertex_neighbours_length++;
+        if(elim_positions[neighbour] < min_elim) {
+          next_vertex = neighbour;
+          min_elim = elim_positions[neighbour];
+        }
+      }
+    }
+
+    for(unsigned int l=0;l<vertex_neighbours_length;l++) {
+      unsigned int next_vertex_neighbour = vertex_neighbours[l];
+      t__[vertex][next_vertex_neighbour] = false;
+      t__[next_vertex_neighbour][vertex] = false;
+      if(next_vertex_neighbour != next_vertex && !t__[next_vertex][next_vertex_neighbour]) {
+        t__[next_vertex][next_vertex_neighbour] = true;
+        t__[next_vertex_neighbour][next_vertex] = true;
+        a__[next_vertex][degrees__[next_vertex]] = next_vertex_neighbour;
+        a__[next_vertex_neighbour][degrees__[next_vertex_neighbour]] = next_vertex;
+        degrees__[next_vertex]++;
+        degrees__[next_vertex_neighbour]++;
+      }
+    }
+
+    width = vertex_neighbours_length;
+    nr_eliminations__++;
+    eliminated__[vertex] = true;
+    vertex_neighbours_length = 0;
+  }
+  this->rollback();
+  delete[] vertex_neighbours;
+  delete[] elim_positions;
+  return width;
 }
 
 unsigned int EliminationGraph::get_degree(unsigned int vertex) const {
