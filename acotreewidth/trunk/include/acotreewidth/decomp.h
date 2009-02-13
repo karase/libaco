@@ -162,7 +162,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     }
 
     double eval_solution(const std::vector<unsigned int> &solution) {
-      return 1.0 / elim_graph_->eval_ordering(solution);
+      return 1.0 / this->eval_tour(solution);
     }
 
     std::vector<unsigned int> perturbate(const std::vector<unsigned int> &solution) {
@@ -233,20 +233,8 @@ template <class T> class TreeDecompProblem : public DecompProblem<T> {
     }
 
     unsigned int compute_width(const std::vector<unsigned int> &tour) {
-      unsigned int width = 0;
       DecompProblem<T>::elim_graph_->rollback();
-      for(unsigned int i=0;i<tour.size();i++) {
-        unsigned int w = DecompProblem<T>::elim_graph_->get_degree(tour[i]);
-        DecompProblem<T>::elim_graph_->eliminate(tour[i]);
-        if(w > width) {
-          width = w;
-        }
-
-        if(tour.size()-i <= width) {
-          break;
-        }
-      }
-      return width;
+      return DecompProblem<T>::elim_graph_->eval_ordering(tour);
     }
 };
 
