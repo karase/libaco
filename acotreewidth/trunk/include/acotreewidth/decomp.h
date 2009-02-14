@@ -83,7 +83,6 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
   protected:
     T *graph_;
     EliminationGraph *elim_graph_;
-    std::map<unsigned int,bool> visited_vertices_;
     std::vector<double> vertex_weight_;
     heuristicf heuristic_; 
     unsigned int vertices_eliminated_;
@@ -92,11 +91,17 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     unsigned int iterations_without_improve_;
     unsigned int ls_iterations_without_improve_;
     bool use_heuristic_;
+    std::map<unsigned int,double> vertices_;
+    std::map<unsigned int,double> feasible_vertices_;
   public:
     DecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool use_heuristic=true, bool pheromone_update_es=false, LocalSearchType ls_type=HILL_CLIMBING) {
       graph_ = graph;
       elim_graph_ = new EliminationGraph(*graph);
       vertex_weight_.reserve(graph->number_of_vertices());
+      for(unsigned int i=0;i<graph_->number_of_vertices();i++) {
+        vertices_[i] = 1;
+      }
+      feasible_vertices_ = vertices_;
       heuristic_ = heuristic;
       vertices_eliminated_ = 0;
       pheromone_update_es_ = pheromone_update_es;
@@ -128,13 +133,13 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     }
 
     virtual std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex) {
-      std::map<unsigned int,double> vertices;
-      for(unsigned int i=0;i<graph_->number_of_vertices();i++) {
-        if (!visited_vertices_[i]) {
-          vertices[i] = use_heuristic_ ? heuristic_(*elim_graph_, i) : 1;
+      if(use_heuristic_) {
+        std::map<unsigned int,double>::iterator it;
+        for (it=feasible_vertices_.begin();it!=feasible_vertices_.end();it++) {
+          (*it).second = heuristic_(*elim_graph_, (*it).first);
         }
       }
-      return vertices;
+      return feasible_vertices_;
     }
 
     double eval_tour(const std::vector<unsigned int> &tour) {
@@ -157,7 +162,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
         elim_graph_->eliminate(vertex);
         vertices_eliminated_++;
       }
-      visited_vertices_[vertex] = true;
+      feasible_vertices_.erase(vertex);
     }
 
     bool is_tour_complete(const std::vector<unsigned int> &tour) {
@@ -227,7 +232,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
         vertices_eliminated_ = 0;
         elim_graph_->rollback();
       }
-      visited_vertices_.clear();
+      feasible_vertices_ = vertices_;
     }
 
     virtual unsigned int compute_width(const std::vector<unsigned int> &tour) = 0;
@@ -327,15 +332,15 @@ template <class T> class HyperTreeDecompProblem : public DecompProblem<T> {
     }
 
     std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex) {
-      std::map<unsigned int,double> vertices;
-      for(unsigned int i=0;i<DecompProblem<T>::graph_->number_of_vertices();i++) {
-        if (!DecompProblem<T>::visited_vertices_[i]) {
-          std::vector<unsigned int> clique = DecompProblem<T>::elim_graph_->get_neighbours(i);
-          clique.push_back(i);
-          vertices[i] = 1.0 / compute_greedy_hyperedge_covering(clique).size();
+      if(DecompProblem<T>::use_heuristic_) {
+        std::map<unsigned int,double>::iterator it;
+        for (it=DecompProblem<T>::feasible_vertices_.begin();it!=DecompProblem<T>::feasible_vertices_.end();it++) {
+          std::vector<unsigned int> clique = DecompProblem<T>::elim_graph_->get_neighbours((*it).first);
+          clique.push_back((*it).first);
+          DecompProblem<T>::feasible_vertices_[(*it).first] = 1.0 / compute_greedy_hyperedge_covering(clique).size();
         }
       }
-      return vertices;
+      return DecompProblem<T>::feasible_vertices_;
     }
 };
 
