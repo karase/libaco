@@ -22,8 +22,10 @@ class EliminationGraph {
   public:
     EliminationGraph(const Graph &graph);
     ~EliminationGraph();
-    void eliminate(unsigned int vertex);
+    unsigned int eliminate(unsigned int vertex);
+    unsigned int eliminate_efficient(unsigned int vertex, unsigned int *elim_positions, unsigned int *vertex_neighbours);
     unsigned int eval_ordering(const std::vector<unsigned int> &ordering);
+    std::vector<unsigned int> get_max_clique_positions(const std::vector<unsigned int> &solution);
     unsigned int get_degree(unsigned int vertex) const;
     unsigned int min_fill(unsigned int vertex) const;
     std::vector<unsigned int> get_neighbours(unsigned int vertex) const;
@@ -39,8 +41,6 @@ namespace Heuristic {
 }
 
 enum LocalSearchType { NO_LS, HILL_CLIMBING, ITERATED_LS };
-
-std::vector<unsigned int> get_max_clique_positions(EliminationGraph &elim_graph, const std::vector<unsigned int> &solution);
 
 class MaxCliqueRandomNeighbour : public Neighbourhood {
   private:
@@ -91,6 +91,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     LocalSearchType ls_type_;
     unsigned int iterations_without_improve_;
     unsigned int ls_iterations_without_improve_;
+    bool ls_;
   public:
     DecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false, LocalSearchType ls_type=HILL_CLIMBING) {
       graph_ = graph;
@@ -100,6 +101,10 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
       vertices_eliminated_ = 0;
       pheromone_update_es_ = pheromone_update_es;
       ls_type_ = ls_type;
+      ls_ = false;
+      if (ls_type_ == ITERATED_LS || ls_type_ == HILL_CLIMBING) {
+        ls_ = true;
+      }
       iterations_without_improve_ = 10;
       ls_iterations_without_improve_ = 10;
     }
@@ -120,7 +125,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     virtual std::map<unsigned int,double> get_feasible_start_vertices() {
       std::map<unsigned int,double> vertices;
       for(unsigned int i=0;i<graph_->number_of_vertices();i++) {
-        vertices[i] = heuristic_(*elim_graph_, i);
+        vertices[i] = !ls_ ? heuristic_(*elim_graph_, i) : 1;
       }
       return vertices;
     }
@@ -129,7 +134,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
       std::map<unsigned int,double> vertices;
       for(unsigned int i=0;i<graph_->number_of_vertices();i++) {
         if (!visited_vertices_[i]) {
-          vertices[i] = heuristic_(*elim_graph_, i);
+          vertices[i] = !ls_ ? heuristic_(*elim_graph_, i) : 1;
         }
       }
       return vertices;
@@ -150,9 +155,11 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     }
 
     void added_vertex_to_tour(unsigned int vertex) {
-      vertex_weight_[vertex] = elim_graph_->get_degree(vertex) * 1.0 / (elim_graph_->number_of_vertices() - vertices_eliminated_);
-      elim_graph_->eliminate(vertex);
-      vertices_eliminated_++;
+      if (!ls_) {
+        vertex_weight_[vertex] = elim_graph_->get_degree(vertex) * 1.0 / (elim_graph_->number_of_vertices() - vertices_eliminated_);
+        elim_graph_->eliminate(vertex);
+        vertices_eliminated_++;
+      }
       visited_vertices_[vertex] = true;
     }
 
@@ -170,7 +177,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
 
       unsigned int max_clique_perturbation = random_number(2);
       if(max_clique_perturbation) {
-        std::vector<unsigned int> max_cliques = get_max_clique_positions(*elim_graph_, solution);
+        std::vector<unsigned int> max_cliques = elim_graph_->get_max_clique_positions(solution);
         for(unsigned int i=0;i<max_cliques.size();i++) {
           /*unsigned int swap_pos = random_number(new_solution.size());
           unsigned int tmp = new_solution[max_cliques[i]];
@@ -219,8 +226,10 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     }
 
     void cleanup() {
-      vertices_eliminated_ = 0;
-      elim_graph_->rollback();
+      if (!ls_) {
+        vertices_eliminated_ = 0;
+        elim_graph_->rollback();
+      }
       visited_vertices_.clear();
     }
 
