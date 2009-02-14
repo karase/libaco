@@ -44,10 +44,12 @@ EliminationGraph::~EliminationGraph() {
   delete[] eliminated__;
 }
 
-void EliminationGraph::eliminate(unsigned int vertex) {
+unsigned int EliminationGraph::eliminate(unsigned int vertex) {
+  unsigned int width = 0;
   for(unsigned int i=0;i<degrees__[vertex];i++) {
     int n1 = a__[vertex][i];
     if(!eliminated__[n1]) {
+      width++;
       for(unsigned int j=i+1;j<degrees__[vertex];j++) {
         int n2 = a__[vertex][j];
         if(!eliminated__[n2] && !t__[n1][n2]) {
@@ -66,61 +68,97 @@ void EliminationGraph::eliminate(unsigned int vertex) {
 
   nr_eliminations__++;
   eliminated__[vertex] = true;
+  return width;
+}
+
+unsigned int EliminationGraph::eliminate_efficient(unsigned int vertex, unsigned int *elim_positions, unsigned int *vertex_neighbours) {
+  unsigned int vertex_neighbours_length = 0;
+  unsigned int min_elim = UINT_MAX;
+  unsigned int next_vertex = 0;
+  for(unsigned int k=0;k<degrees__[vertex];k++) {
+    unsigned int neighbour = a__[vertex][k];
+    if(!eliminated__[neighbour]) {
+      vertex_neighbours[vertex_neighbours_length] = neighbour;
+      vertex_neighbours_length++;
+      if(elim_positions[neighbour] < min_elim) {
+        next_vertex = neighbour;
+        min_elim = elim_positions[neighbour];
+      }
+    }
+  }
+
+  for(unsigned int l=0;l<vertex_neighbours_length;l++) {
+    unsigned int next_vertex_neighbour = vertex_neighbours[l];
+    t__[vertex][next_vertex_neighbour] = false;
+    t__[next_vertex_neighbour][vertex] = false;
+    if(next_vertex_neighbour != next_vertex && !t__[next_vertex][next_vertex_neighbour]) {
+      t__[next_vertex][next_vertex_neighbour] = true;
+      t__[next_vertex_neighbour][next_vertex] = true;
+      a__[next_vertex][degrees__[next_vertex]] = next_vertex_neighbour;
+      a__[next_vertex_neighbour][degrees__[next_vertex_neighbour]] = next_vertex;
+      degrees__[next_vertex]++;
+      degrees__[next_vertex_neighbour]++;
+    }
+  }
+  eliminated__[vertex] = true;
+  nr_eliminations__++;
+  return vertex_neighbours_length;
 }
 
 unsigned int EliminationGraph::eval_ordering(const std::vector<unsigned int> &ordering) {
   unsigned int width = 0;
-  unsigned int *elim_positions = new unsigned int[ordering.size()];
-  unsigned int *vertex_neighbours = new unsigned int[ordering.size()];
-  unsigned int vertex_neighbours_length = 0;
+  unsigned int *vertex_neighbours = new unsigned int[size__];
+  unsigned int *elim_positions = new unsigned int[size__];
   for(unsigned int i=0;i<ordering.size();i++) {
     elim_positions[ordering[i]] = i;
   }
 
   for(unsigned int j=0;j<ordering.size();j++) {
     unsigned int vertex = ordering[j];
-    unsigned int min_elim = UINT_MAX;
-    unsigned int next_vertex = 0;
-    for(unsigned int k=0;k<degrees__[vertex];k++) {
-      unsigned int neighbour = a__[vertex][k];
-      if(!eliminated__[neighbour]) {
-        vertex_neighbours[vertex_neighbours_length] = neighbour;
-        vertex_neighbours_length++;
-        if(elim_positions[neighbour] < min_elim) {
-          next_vertex = neighbour;
-          min_elim = elim_positions[neighbour];
-        }
-      }
-    }
+    unsigned int node_width = this->eliminate_efficient(vertex, elim_positions, vertex_neighbours);
 
-    for(unsigned int l=0;l<vertex_neighbours_length;l++) {
-      unsigned int next_vertex_neighbour = vertex_neighbours[l];
-      t__[vertex][next_vertex_neighbour] = false;
-      t__[next_vertex_neighbour][vertex] = false;
-      if(next_vertex_neighbour != next_vertex && !t__[next_vertex][next_vertex_neighbour]) {
-        t__[next_vertex][next_vertex_neighbour] = true;
-        t__[next_vertex_neighbour][next_vertex] = true;
-        a__[next_vertex][degrees__[next_vertex]] = next_vertex_neighbour;
-        a__[next_vertex_neighbour][degrees__[next_vertex_neighbour]] = next_vertex;
-        degrees__[next_vertex]++;
-        degrees__[next_vertex_neighbour]++;
-      }
+    if(node_width > width) {
+      width = node_width;
     }
-
-    if(vertex_neighbours_length > width) {
-      width = vertex_neighbours_length;
-    }
-    nr_eliminations__++;
-    eliminated__[vertex] = true;
-    vertex_neighbours_length = 0;
 
     if(width > this->number_of_vertices()) {
       break;
     }
   }
-  delete[] vertex_neighbours;
   delete[] elim_positions;
+  delete[] vertex_neighbours;
   return width;
+}
+
+std::vector<unsigned int> EliminationGraph::get_max_clique_positions(const std::vector<unsigned int> &ordering) {
+  unsigned int *vertex_neighbours = new unsigned int[size__];
+  unsigned int *elim_positions = new unsigned int[size__];
+  for(unsigned int i=0;i<ordering.size();i++) {
+    elim_positions[ordering[i]] = i;
+  }
+
+  std::vector<unsigned int> max_clique_positions;
+  unsigned int max_clique = 0;
+  for(unsigned int j=0;j<ordering.size();j++) {
+    unsigned int vertex = ordering[j];
+    unsigned int node_width = this->eliminate_efficient(vertex, elim_positions, vertex_neighbours);
+
+    if(node_width == max_clique) {
+      max_clique_positions.push_back(j);
+    } else if(max_clique < node_width) {
+      max_clique_positions.clear();
+      max_clique_positions.push_back(j);
+      max_clique = node_width;
+    } 
+
+    if(max_clique > this->number_of_vertices()) {
+      break;
+    }
+  }
+  delete[] elim_positions;
+  delete[] vertex_neighbours;
+  this->rollback();
+  return max_clique_positions;
 }
 
 unsigned int EliminationGraph::get_degree(unsigned int vertex) const {
@@ -179,29 +217,6 @@ void EliminationGraph::rollback() {
   memcpy(degrees__, initial_degrees__, sizeof(unsigned int)*size__);
 }
 
-std::vector<unsigned int> get_max_clique_positions(EliminationGraph &elim_graph, const std::vector<unsigned int> &solution) {
-  unsigned int max_clique = 0;
-  std::vector<unsigned int> max_clique_positions;
-  for(unsigned int i=0;i<solution.size();i++) {
-    unsigned int w = elim_graph.get_degree(solution[i]);
-
-    if(w == max_clique) {
-      max_clique_positions.push_back(i);
-    } else if(max_clique < w) {
-      max_clique_positions.clear();
-      max_clique_positions.push_back(i);
-      max_clique = w;
-    } 
-
-    elim_graph.eliminate(solution[i]);
-    if(solution.size()-i <= max_clique) {
-      break;
-    }
-  }
-  elim_graph.rollback();
-  return max_clique_positions;
-}
-
 MaxCliqueRandomNeighbour::MaxCliqueRandomNeighbour(EliminationGraph &graph, std::vector<unsigned int> solution) {
   elim_graph_ = &graph;
   solution_ = solution;
@@ -227,7 +242,7 @@ bool MaxCliqueRandomNeighbour::has_next_neighbour_solution() {
 }
 
 std::vector<unsigned int> MaxCliqueRandomNeighbour::next_neighbour_solution() {
-  std::vector<unsigned int> max_cliques = get_max_clique_positions(*elim_graph_, solution_);
+  std::vector<unsigned int> max_cliques = elim_graph_->get_max_clique_positions(solution_);
   unsigned int max_clique_pos = 0;
   unsigned int other_pos = 0;
   while(max_clique_pos == other_pos) {
@@ -245,7 +260,7 @@ std::vector<unsigned int> MaxCliqueRandomNeighbour::next_neighbour_solution() {
 MaxCliqueNeighbourhood::MaxCliqueNeighbourhood(EliminationGraph &graph, std::vector<unsigned int> solution) {
   elim_graph_ = &graph;
   solution_ = solution;
-  std::vector<unsigned int> max_cliques = get_max_clique_positions(*elim_graph_, solution_);
+  std::vector<unsigned int> max_cliques = elim_graph_->get_max_clique_positions(solution_);
   max_clique_pos_ = max_cliques[random_number(max_cliques.size())];
   swap_pos_ = 0;
 }
@@ -255,7 +270,7 @@ MaxCliqueNeighbourhood::~MaxCliqueNeighbourhood() {
 
 void MaxCliqueNeighbourhood::set_solution(std::vector<unsigned int> solution) {
   solution_ = solution;
-  std::vector<unsigned int> max_cliques = get_max_clique_positions(*elim_graph_, solution_);
+  std::vector<unsigned int> max_cliques = elim_graph_->get_max_clique_positions(solution_);
   max_clique_pos_ = max_cliques[random_number(max_cliques.size())];
   swap_pos_ = 0;
 }
