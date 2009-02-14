@@ -43,6 +43,8 @@ static LocalSearchType ls_type = NO_LS;
 static unsigned int iteratedls_it = 10;
 static unsigned int iteratedls_ls_it = 10;
 
+static bool use_heuristic = true;
+
 static AntColony<Ant> *colony;
 
 static void parse_options(int argc, char *argv[]) {
@@ -170,6 +172,10 @@ static void parse_options(int argc, char *argv[]) {
   } else if(ls_arg.isSet()) {
     local_search = AntColonyConfiguration::LS_ALL;
   }
+
+  if(beta == 0) {
+    use_heuristic = false;
+  }
 }
 
 static heuristicf get_heuristic_function() {
@@ -189,7 +195,7 @@ static heuristicf get_heuristic_function() {
 template <class T> OptimizationProblem *get_tree_problem(heuristicf heuristic_function) {
   TreeDecompProblem<T> *op;
   T &graph1 = (T &) Parser::parse_dimacs<T>(filepath.c_str());
-  op = new TreeDecompProblem<T>(&graph1, heuristic_function, pheromone_update_es, ls_type);
+  op = new TreeDecompProblem<T>(&graph1, heuristic_function, use_heuristic, pheromone_update_es, ls_type);
   op->set_iteratedls_parameters(iteratedls_it, iteratedls_ls_it);
   return op;
 }
@@ -197,7 +203,7 @@ template <class T> OptimizationProblem *get_tree_problem(heuristicf heuristic_fu
 template <class T> OptimizationProblem *get_hypertree_problem(heuristicf heuristic_function) {
   HyperTreeDecompProblem<T> *op;
   HyperGraph &hypergraph = Parser::parse_hypertreelib(filepath.c_str());
-  op = new HyperTreeDecompProblem<T>(&hypergraph, heuristic_function, pheromone_update_es, ls_type);
+  op = new HyperTreeDecompProblem<T>(&hypergraph, heuristic_function, use_heuristic, pheromone_update_es, ls_type);
   op->set_iteratedls_parameters(iteratedls_it, iteratedls_ls_it);
   return op;
 }

@@ -91,9 +91,9 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     LocalSearchType ls_type_;
     unsigned int iterations_without_improve_;
     unsigned int ls_iterations_without_improve_;
-    bool ls_;
+    bool use_heuristic_;
   public:
-    DecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false, LocalSearchType ls_type=HILL_CLIMBING) {
+    DecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool use_heuristic=true, bool pheromone_update_es=false, LocalSearchType ls_type=HILL_CLIMBING) {
       graph_ = graph;
       elim_graph_ = new EliminationGraph(*graph);
       vertex_weight_.reserve(graph->number_of_vertices());
@@ -101,10 +101,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
       vertices_eliminated_ = 0;
       pheromone_update_es_ = pheromone_update_es;
       ls_type_ = ls_type;
-      ls_ = false;
-      if (ls_type_ == ITERATED_LS || ls_type_ == HILL_CLIMBING) {
-        ls_ = true;
-      }
+      use_heuristic_ = use_heuristic;
       iterations_without_improve_ = 10;
       ls_iterations_without_improve_ = 10;
     }
@@ -125,7 +122,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     virtual std::map<unsigned int,double> get_feasible_start_vertices() {
       std::map<unsigned int,double> vertices;
       for(unsigned int i=0;i<graph_->number_of_vertices();i++) {
-        vertices[i] = !ls_ ? heuristic_(*elim_graph_, i) : 1;
+        vertices[i] = use_heuristic_ ? heuristic_(*elim_graph_, i) : 1;
       }
       return vertices;
     }
@@ -134,7 +131,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
       std::map<unsigned int,double> vertices;
       for(unsigned int i=0;i<graph_->number_of_vertices();i++) {
         if (!visited_vertices_[i]) {
-          vertices[i] = !ls_ ? heuristic_(*elim_graph_, i) : 1;
+          vertices[i] = use_heuristic_ ? heuristic_(*elim_graph_, i) : 1;
         }
       }
       return vertices;
@@ -155,7 +152,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     }
 
     void added_vertex_to_tour(unsigned int vertex) {
-      if (!ls_) {
+      if (use_heuristic_) {
         vertex_weight_[vertex] = elim_graph_->get_degree(vertex) * 1.0 / (elim_graph_->number_of_vertices() - vertices_eliminated_);
         elim_graph_->eliminate(vertex);
         vertices_eliminated_++;
@@ -226,7 +223,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     }
 
     void cleanup() {
-      if (!ls_) {
+      if (use_heuristic_) {
         vertices_eliminated_ = 0;
         elim_graph_->rollback();
       }
@@ -238,7 +235,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
 
 template <class T> class TreeDecompProblem : public DecompProblem<T> {
   public:
-    TreeDecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false, LocalSearchType ls_type=HILL_CLIMBING) : DecompProblem<T>(graph, heuristic, pheromone_update_es, ls_type) {
+    TreeDecompProblem(T *graph, heuristicf heuristic=Heuristic::min_degree, bool use_heuristic=false, bool pheromone_update_es=false, LocalSearchType ls_type=HILL_CLIMBING) : DecompProblem<T>(graph, heuristic, use_heuristic, pheromone_update_es, ls_type) {
     }
 
     unsigned int compute_width(const std::vector<unsigned int> &tour) {
@@ -251,7 +248,7 @@ template <class T> class HyperTreeDecompProblem : public DecompProblem<T> {
   private:
     HyperGraph *hypergraph_;
   public:
-    HyperTreeDecompProblem(HyperGraph *hypergraph, heuristicf heuristic=Heuristic::min_degree, bool pheromone_update_es=false, LocalSearchType ls_type=HILL_CLIMBING) : DecompProblem<T>(&hypergraph->get_primal_graph<T>(), heuristic, pheromone_update_es, ls_type) {
+    HyperTreeDecompProblem(HyperGraph *hypergraph, heuristicf heuristic=Heuristic::min_degree, bool use_heuristic=false, bool pheromone_update_es=false, LocalSearchType ls_type=HILL_CLIMBING) : DecompProblem<T>(&hypergraph->get_primal_graph<T>(), heuristic, use_heuristic, pheromone_update_es, ls_type) {
       hypergraph_ = hypergraph;
     }
 
@@ -261,17 +258,24 @@ template <class T> class HyperTreeDecompProblem : public DecompProblem<T> {
 
     unsigned int compute_width(const std::vector<unsigned int> &tour) {
       unsigned int width = 0;
+      unsigned int *vertex_neighbours = new unsigned int[tour.size()];
+      unsigned int *elim_positions = new unsigned int[tour.size()];
+      for(unsigned int j=0;j<tour.size();j++) {
+        elim_positions[tour[j]] = j;
+      }
       DecompProblem<T>::elim_graph_->rollback();
       for(unsigned int i=0;i<tour.size();i++) {
         std::vector<unsigned int> vertices = DecompProblem<T>::elim_graph_->get_neighbours(tour[i]);
         vertices.push_back(tour[i]);
         // set covering
         unsigned int w = compute_greedy_hyperedge_covering(vertices).size();
-        DecompProblem<T>::elim_graph_->eliminate(tour[i]);
+        DecompProblem<T>::elim_graph_->eliminate_efficient(tour[i], elim_positions, vertex_neighbours);
         if(w > width) {
           width = w;
         }
       }
+      delete[] elim_positions;
+      delete[] vertex_neighbours;
       return width;
     }
 
