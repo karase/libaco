@@ -168,8 +168,8 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
     std::vector<unsigned int> perturbate(const std::vector<unsigned int> &solution) {
       std::vector<unsigned int> new_solution = solution;
 
-      unsigned int max_clique_perturbation = random_number(2);
-      if(max_clique_perturbation) {
+      //unsigned int max_clique_perturbation = random_number(2);
+      //if(max_clique_perturbation) {
         std::vector<unsigned int> max_cliques = get_max_clique_positions(*elim_graph_, solution);
         for(unsigned int i=0;i<max_cliques.size();i++) {
           /*unsigned int swap_pos = random_number(new_solution.size());
@@ -181,15 +181,15 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
           unsigned int ins_pos = random_number(new_solution.size());
           new_solution.insert(new_solution.begin()+ins_pos, tmp);
         }
-      } else {
-        for(unsigned int i=0;i<2;i++) {
-          unsigned int v1 = random_number(new_solution.size());
-          unsigned int tmp = new_solution[v1];
-          new_solution.erase(new_solution.begin()+v1);
-          unsigned int v2 = random_number(new_solution.size());
-          new_solution.insert(new_solution.begin()+v2, tmp);
-        }
-      }
+      //} else {
+      //  for(unsigned int i=0;i<2;i++) {
+      //    unsigned int v1 = random_number(new_solution.size());
+      //    unsigned int tmp = new_solution[v1];
+      //    new_solution.erase(new_solution.begin()+v1);
+      //    unsigned int v2 = random_number(new_solution.size());
+      //    new_solution.insert(new_solution.begin()+v2, tmp);
+      //  }
+      //}
       return new_solution;
     }
 
