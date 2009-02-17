@@ -20,6 +20,7 @@ static unsigned int heuristic = 0;
 static unsigned int graph_type = 0;
 static bool print_tour_flag = false;
 static AntColonyConfiguration::StagnationMeasureType stagnation_measure = AntColonyConfiguration::STAG_NONE;
+static double stag_limit = 0.0;
 static double time_limit = DBL_MAX;
 static bool simple_as_flag = false;
 static bool elitist_as_flag = false;
@@ -67,6 +68,7 @@ static void parse_options(int argc, char *argv[]) {
   TCLAP::SwitchArg print_tour_arg("o", "printord", "print best elimination ordering in iteration");
   TCLAP::SwitchArg stag_variance_arg("", "stag_variance", "compute and print variation coefficient stagnation");
   TCLAP::SwitchArg stag_lambda_arg("", "stag_lambda", "compute and print lambda branching factor stagnation");
+  TCLAP::ValueArg<double> stag_limit_arg("l", "stag_limit", "terminate if the stagnation measure falls below this value", false, stag_limit, "double");
   TCLAP::SwitchArg pheromone_update_es_arg("", "pheromone_update_es", "edge specific pheromone update");
   TCLAP::ValueArg<double> time_limit_arg("t", "time", "terminate after n seconds (after last iteration is finished)", false, time_limit, "double");
   TCLAP::SwitchArg simple_as_arg("", "simple", "use Simple Ant System");
@@ -108,6 +110,7 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(print_tour_arg);
   cmd.add(stag_variance_arg);
   cmd.add(stag_lambda_arg);
+  cmd.add(stag_limit_arg);
   cmd.add(pheromone_update_es_arg);
   cmd.add(time_limit_arg);
   cmd.add(maxmin_frequency_arg);
@@ -164,6 +167,7 @@ static void parse_options(int argc, char *argv[]) {
   } else if(stag_lambda_arg.isSet()) {
     stagnation_measure = AntColonyConfiguration::STAG_LAMBDA_BRANCHING_FACTOR;
   }
+  stag_limit = stag_limit_arg.getValue();
 
   if(no_ls_arg.isSet()) {
     local_search = AntColonyConfiguration::LS_NONE;
@@ -346,7 +350,8 @@ int main(int argc, char *argv[]) {
 
   timer();
   unsigned int no_improve_counter = 0;
-  for(unsigned int i=0;i<iterations && timer() < time_limit && no_improve_counter < no_improve_iterations;i++) {
+  double stag_value = DBL_MAX;
+  for(unsigned int i=0;i<iterations && timer() < time_limit && no_improve_counter < no_improve_iterations && stag_limit < stag_value;i++) {
     double old_best_tour_length = colony->get_best_tour_length();
     colony->run();
     double new_best_tour_length = colony->get_best_tour_length();
@@ -367,7 +372,8 @@ int main(int argc, char *argv[]) {
       std::cout << colony->get_best_tour_length_in_iteration_no_ls() << "\t";
     }
     if(stagnation_measure != AntColonyConfiguration::STAG_NONE) {
-      std::cout << colony->get_stagnation_measure();
+      stag_value = colony->get_stagnation_measure();
+      std::cout << stag_value;
     }
     if(print_tour_flag) {
       std::cout << "\t";
