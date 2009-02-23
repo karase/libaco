@@ -245,7 +245,12 @@ std::multimap<double,unsigned int,Ant::MultiMapComp> Ant::get_feasible_vertices(
     //std::cout << pheromones.get(pheromones.size()-1, (*it).first) << std::endl;
     unsigned int vertex = (*it).first;
     //double heuristic_value = (*it).second;
-    double probability = (*it).second / denominator;
+    double probability;
+    if(denominator == 0) {
+      probability = 1.0 / vertices.size();
+    } else {
+      probability = (*it).second / denominator;
+    }
     //std::cout << pheromones.get(current_vertex(), vertex) << " " << heuristic_value << std::endl;
     //std::cout << "vertex: " << vertex << " heuristic: " << heuristic_value << " probability: " << probability << std::endl;
     probabilities.insert(std::pair<double,unsigned int>(probability, vertex));
@@ -287,9 +292,10 @@ unsigned int Ant::choose_next_vertex_with_likelihood(std::multimap<double,unsign
   unsigned int vertex = -1;
   unsigned int random_value = Util::random_number(RAND_MAX);
   double tmp = 0;
+  std::vector<unsigned int> vertices;
   for(std::multimap<double,unsigned int,MultiMapComp>::iterator it=probabilities.begin();it!=probabilities.end();) {
+    vertices.clear();
     double probability = (*it).first;
-    std::vector<unsigned int> vertices;
     while(it!=probabilities.end() && (*it).first == probability) {
       vertices.push_back((*it).second);
       it++;
