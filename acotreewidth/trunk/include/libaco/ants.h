@@ -97,10 +97,10 @@ class MaxMinPheromoneMatrix : public PheromoneMatrix {
 
 class ACSPheromoneMatrix : public PheromoneMatrix {
   private:
-    double epsilon_;
+    double xi_;
   public:
     ACSPheromoneMatrix(int vertices, double evaporation_rate, double initial_pheromone);
-    void set_epsilon(double epsilon);
+    void set_xi(double xi);
     void local_pheromone_update(unsigned int v, unsigned int w);
 };
 
@@ -311,7 +311,7 @@ class ACSAntColonyConfiguration : public AntColonyConfiguration {
     /// the heuristic and pheromone information).
     double q0;
     /// Local pheromone update parameter.
-    double epsilon;
+    double xi;
     ACSAntColonyConfiguration();
 };
 
