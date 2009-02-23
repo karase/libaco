@@ -29,7 +29,7 @@ static unsigned int maxmin_frequency = 5;
 static double maxmin_a = 2.0;
 
 static double acs_q0 = 0.5;
-static double acs_epsilon = 0.1;
+static double acs_xi = 0.1;
 
 static std::string filepath;
 
@@ -60,7 +60,7 @@ static void parse_options(int argc, char *argv[]) {
   TCLAP::ValueArg<double> maxmin_a_arg("", "maxmin_a", "parameter a in Max-Min Ant System", false, maxmin_a, "double");
   TCLAP::SwitchArg acs_as_arg("", "acs", "use Ant Colony System");
   TCLAP::ValueArg<double> acs_q0_arg("", "acs_q0", "q0 parameter for Ant Colony System", false, acs_q0, "double");
-  TCLAP::ValueArg<double> acs_epsilon_arg("", "acs_epsilon", "epsilon parameter for Ant Colony System", false, acs_epsilon, "double");
+  TCLAP::ValueArg<double> acs_xi_arg("", "acs_xi", "xi parameter for Ant Colony System", false, acs_xi, "double");
   std::vector<TCLAP::Arg *> as_variants;
   as_variants.push_back(&simple_as_arg);
   as_variants.push_back(&elitist_as_arg);
@@ -81,7 +81,7 @@ static void parse_options(int argc, char *argv[]) {
   cmd.add(maxmin_frequency_arg);
   cmd.add(maxmin_a_arg);
   cmd.add(acs_q0_arg);
-  cmd.add(acs_epsilon_arg);
+  cmd.add(acs_xi_arg);
   cmd.xorAdd(as_variants);
   cmd.parse(argc, argv);
   ants = ants_arg.getValue();
@@ -103,7 +103,7 @@ static void parse_options(int argc, char *argv[]) {
   maxmin_a = maxmin_a_arg.getValue();
   acs_as_flag = acs_as_arg.isSet();
   acs_q0 = acs_q0_arg.getValue();
-  acs_epsilon = acs_epsilon_arg.getValue();
+  acs_xi = acs_xi_arg.getValue();
 
   if(stag_variance_arg.isSet()) {
     stagnation_measure = AntColonyConfiguration::STAG_VARIATION_COEFFICIENT;
@@ -148,7 +148,7 @@ AntColony<Ant> *get_ant_colony(OptimizationProblem *problem) {
     ACSAntColonyConfiguration config;
     set_config(config);
     config.q0 = acs_q0;
-    config.epsilon = acs_epsilon;
+    config.xi = acs_xi;
     colony = (AntColony<Ant> *) new ACSAntColony(problem, config);
   }
   return colony;
