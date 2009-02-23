@@ -158,7 +158,7 @@ template <class T> class DecompProblem : public OptimizationProblem, public Eval
 
     void added_vertex_to_tour(unsigned int vertex) {
       if (use_heuristic_) {
-        vertex_weight_[vertex] = elim_graph_->get_degree(vertex) * 1.0 / (elim_graph_->number_of_vertices() - vertices_eliminated_);
+        vertex_weight_[vertex] = elim_graph_->get_degree(vertex) * 1.0 / elim_graph_->number_of_vertices();
         elim_graph_->eliminate(vertex);
         vertices_eliminated_++;
       }
