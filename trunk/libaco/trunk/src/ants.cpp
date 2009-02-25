@@ -102,12 +102,12 @@ void MaxMinPheromoneMatrix::evaporate(unsigned int v, unsigned int w) {
 ACSPheromoneMatrix::ACSPheromoneMatrix(int vertices, double evaporation_rate, double initial_pheromone) : PheromoneMatrix(vertices, evaporation_rate, initial_pheromone) {
 }
 
-void ACSPheromoneMatrix::set_epsilon(double epsilon) {
-  epsilon_ = epsilon;
+void ACSPheromoneMatrix::set_xi(double xi) {
+  xi_ = xi;
 }
 
 void ACSPheromoneMatrix::local_pheromone_update(unsigned int v, unsigned int w) {
-  (*matrix_)[v][w] = (1 - epsilon_) * (*matrix_)[v][w] + epsilon_ * initial_pheromone_;
+  (*matrix_)[v][w] = (1 - xi_) * (*matrix_)[v][w] + xi_ * initial_pheromone_;
 }
 
 Tour::Tour(unsigned int vertices) {
@@ -440,7 +440,7 @@ MaxMinAntColonyConfiguration::MaxMinAntColonyConfiguration() : AntColonyConfigur
 }
 
 ACSAntColonyConfiguration::ACSAntColonyConfiguration() : AntColonyConfiguration() {
-  epsilon = 0.1;
+  xi = 0.1;
   q0 = 0.5;
 }
 
@@ -503,7 +503,7 @@ void MaxMinAntColony::update_pheromones() {
 }
 
 ACSAntColony::ACSAntColony(OptimizationProblem *problem, const ACSAntColonyConfiguration &config) : AntColony<ACSAnt, ACSPheromoneMatrix>(problem, config) {
-  pheromones_->set_epsilon(config.epsilon);
+  pheromones_->set_xi(config.xi);
   for(std::list<ACSAnt>::iterator it=ants_->begin();it!=ants_->end();it++) {
     ACSAnt &ant = (*it);
     ant.set_q0(config.q0);
