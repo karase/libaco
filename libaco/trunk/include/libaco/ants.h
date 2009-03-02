@@ -247,16 +247,12 @@ class AntColonyConfiguration {
   public:
     enum LocalSearchType { LS_NONE, LS_ITERATION_BEST, LS_ALL };
 
-    enum StagnationMeasureType { STAG_NONE, STAG_VARIATION_COEFFICIENT, STAG_LAMBDA_BRANCHING_FACTOR };
-
     /// Number of ants that construct a tour in every iteration.
     unsigned int number_of_ants;
     /// Weight of pheromone value in tour construction.
     double alpha;
     /// Weight of heuristic information in tour construction.
     double beta;
-    /// Defines whether the stagnation measure shall be computed.
-    StagnationMeasureType stagnation_measure;
     /// Defines how fast pheromone shall evaporate.
     double evaporation_rate;
     /// The initial amount of pheromone deposited on the edges.
@@ -384,22 +380,12 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       return pheromones_->average_lambda_branching_factor(0.05);
     }
 
-    void update_stagnation_measure() {
-      if(stagnation_measure_type_ == AntColonyConfiguration::STAG_VARIATION_COEFFICIENT) {
-        stagnation_measure_ = compute_variation_coefficient();
-      } else if(stagnation_measure_type_ == AntColonyConfiguration::STAG_LAMBDA_BRANCHING_FACTOR) {
-        stagnation_measure_ = compute_lambda_branching_factor();
-      }
-    }
-
     virtual void update_pheromones() = 0;
   protected:
     P *pheromones_;
     double alpha_;
     double beta_;
     AntColonyConfiguration::LocalSearchType local_search_type_;
-    AntColonyConfiguration::StagnationMeasureType stagnation_measure_type_;
-    double stagnation_measure_;
     std::list<T> *ants_;
     OptimizationProblem *problem_;
     T *best_so_far_;
@@ -415,8 +401,6 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       alpha_ = config.alpha;
       beta_ = config.beta;
       local_search_type_ = config.local_search;
-      stagnation_measure_type_ = config.stagnation_measure;
-      stagnation_measure_ = 0.0;
       best_so_far_ = new T(problem->get_max_tour_size());
       best_iteration_ = new T(problem->get_max_tour_size());
       best_so_far_no_ls_ = new T(problem->get_max_tour_size());
@@ -434,15 +418,12 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
     };
 
     void run() {
+      reset_ants();
       construct_ants_solutions();
       update_best_tours_no_ls();
       apply_local_search();
       update_best_tours();
-      if(stagnation_measure_type_ != AntColonyConfiguration::STAG_NONE) {
-        update_stagnation_measure();
-      }
       update_pheromones();
-      reset_ants();
     }
 
     std::vector<unsigned int> get_best_tour() {
@@ -477,8 +458,12 @@ template<class T=Ant, class P=PheromoneMatrix> class AntColony {
       return best_iteration_no_ls_->get_tour_length();
     }
 
-    double get_stagnation_measure() {
-      return stagnation_measure_;
+    double get_variation_coefficient() {
+      return compute_variation_coefficient();
+    }
+
+    double get_lambda_branching_factor() {
+      return compute_lambda_branching_factor();
     }
 };
 

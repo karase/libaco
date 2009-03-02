@@ -420,7 +420,6 @@ AntColonyConfiguration::AntColonyConfiguration() {
   number_of_ants = 20;
   alpha = 2.0;
   beta = 5.0;
-  stagnation_measure = STAG_NONE;
   evaporation_rate = 0.1;
   initial_pheromone = 1.0;
   local_search = LS_ITERATION_BEST;
