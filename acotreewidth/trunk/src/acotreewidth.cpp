@@ -374,11 +374,13 @@ int main(int argc, char *argv[]) {
     }
 
     if(stagnation_measure == STAG_VARIATION_COEFFICIENT) {
-      std::cout << colony->get_variation_coefficient();
+      stag_value = colony->get_variation_coefficient();
+      std::cout << stag_value;
     }
 
     if(stagnation_measure == STAG_LAMBDA_BRANCHING_FACTOR) {
-      std::cout << colony->get_lambda_branching_factor();
+      stag_value = colony->get_lambda_branching_factor();
+      std::cout << stag_value;
     }
 
     if(print_tour_flag) {
