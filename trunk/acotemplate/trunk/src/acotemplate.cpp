@@ -197,7 +197,7 @@ int main(int argc, char *argv[]) {
   OptimizationProblem *problem;
 
   /**
-   * create and initialize OptimizationProblem here
+   * TODO: create and initialize OptimizationProblem here
    */
 
   colony = get_ant_colony(problem);
