@@ -7,6 +7,8 @@
 #include <tclap/CmdLine.h>
 #include <acotreewidth/decomp.h>
 
+enum StagnationMeasureType { STAG_NONE, STAG_VARIATION_COEFFICIENT, STAG_LAMBDA_BRANCHING_FACTOR };
+
 static std::string filepath;
 static bool hypergraph_flag;
 static unsigned int ants = 10;
@@ -19,7 +21,7 @@ static double initial_pheromone = -1.0;
 static unsigned int heuristic = 0;
 static unsigned int graph_type = 0;
 static bool print_tour_flag = false;
-static AntColonyConfiguration::StagnationMeasureType stagnation_measure = AntColonyConfiguration::STAG_NONE;
+static StagnationMeasureType stagnation_measure = STAG_NONE;
 static double stag_limit = 0.0;
 static double time_limit = DBL_MAX;
 static bool simple_as_flag = false;
@@ -163,9 +165,9 @@ static void parse_options(int argc, char *argv[]) {
   }
 
   if(stag_variance_arg.isSet()) {
-    stagnation_measure = AntColonyConfiguration::STAG_VARIATION_COEFFICIENT;
+    stagnation_measure = STAG_VARIATION_COEFFICIENT;
   } else if(stag_lambda_arg.isSet()) {
-    stagnation_measure = AntColonyConfiguration::STAG_LAMBDA_BRANCHING_FACTOR;
+    stagnation_measure = STAG_LAMBDA_BRANCHING_FACTOR;
   }
   stag_limit = stag_limit_arg.getValue();
 
@@ -216,7 +218,6 @@ static void set_config(AntColonyConfiguration &config) {
   config.number_of_ants = ants;
   config.alpha = alpha;
   config.beta = beta;
-  config.stagnation_measure = stagnation_measure;
   config.evaporation_rate = rho;
   config.initial_pheromone = initial_pheromone;
   config.local_search = local_search;
@@ -344,7 +345,7 @@ int main(int argc, char *argv[]) {
   std::cout << ((local_search != AntColonyConfiguration::LS_NONE) ? "\tnols" : "");
   std::cout << "\tbest_it";
   std::cout << ((local_search != AntColonyConfiguration::LS_NONE) ? "\tit_nols" : "");
-  std::cout << ((stagnation_measure != AntColonyConfiguration::STAG_NONE) ? "\tstagnation" : "");
+  std::cout << ((stagnation_measure != STAG_NONE) ? "\tstagnation" : "");
   std::cout << (print_tour_flag ? "\tordering" : "");
   std::cout << std::endl;
 
@@ -371,10 +372,15 @@ int main(int argc, char *argv[]) {
     if(local_search != AntColonyConfiguration::LS_NONE) {
       std::cout << colony->get_best_tour_length_in_iteration_no_ls() << "\t";
     }
-    if(stagnation_measure != AntColonyConfiguration::STAG_NONE) {
-      stag_value = colony->get_stagnation_measure();
-      std::cout << stag_value;
+
+    if(stagnation_measure == STAG_VARIATION_COEFFICIENT) {
+      std::cout << colony->get_variation_coefficient();
     }
+
+    if(stagnation_measure == STAG_LAMBDA_BRANCHING_FACTOR) {
+      std::cout << colony->get_lambda_branching_factor();
+    }
+
     if(print_tour_flag) {
       std::cout << "\t";
       print_tour(colony->get_best_tour_in_iteration());

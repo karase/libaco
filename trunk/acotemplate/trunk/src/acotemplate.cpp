@@ -7,6 +7,8 @@
 #include <tclap/CmdLine.h>
 #include <acotemplate/template.h>
 
+enum StagnationMeasureType { STAG_NONE, STAG_VARIATION_COEFFICIENT, STAG_LAMBDA_BRANCHING_FACTOR };
+
 static unsigned int ants = 10;
 static unsigned int iterations = UINT_MAX;
 static double alpha = 1.0;
@@ -14,7 +16,7 @@ static double beta = 1.0;
 static double rho = 0.1;
 static double initial_pheromone = 0.1;
 static bool print_tour_flag = false;
-static AntColonyConfiguration::StagnationMeasureType stagnation_measure = AntColonyConfiguration::STAG_NONE;
+static StagnationMeasureType stagnation_measure = STAG_NONE;
 static double time_limit = DBL_MAX;
 static bool simple_as_flag = false;
 static bool elitist_as_flag = false;
@@ -106,9 +108,9 @@ static void parse_options(int argc, char *argv[]) {
   acs_xi = acs_xi_arg.getValue();
 
   if(stag_variance_arg.isSet()) {
-    stagnation_measure = AntColonyConfiguration::STAG_VARIATION_COEFFICIENT;
+    stagnation_measure = STAG_VARIATION_COEFFICIENT;
   } else if(stag_lambda_arg.isSet()) {
-    stagnation_measure = AntColonyConfiguration::STAG_LAMBDA_BRANCHING_FACTOR;
+    stagnation_measure = STAG_LAMBDA_BRANCHING_FACTOR;
   }
 }
 
@@ -116,7 +118,6 @@ static void set_config(AntColonyConfiguration &config) {
   config.number_of_ants = ants;
   config.alpha = alpha;
   config.beta = beta;
-  config.stagnation_measure = stagnation_measure;
   config.evaporation_rate = rho;
   config.initial_pheromone = initial_pheromone;
 }
@@ -202,7 +203,7 @@ int main(int argc, char *argv[]) {
   colony = get_ant_colony(problem);
 
   std::cout << "iter\ttime\tbest\tbest_it";
-  std::cout << ((stagnation_measure != AntColonyConfiguration::STAG_NONE) ? "\tstagnation" : "");
+  std::cout << ((stagnation_measure != STAG_NONE) ? "\tstagnation" : "");
   std::cout << (print_tour_flag ? "\tordering" : "");
   std::cout << std::endl;
   timer();
@@ -211,9 +212,14 @@ int main(int argc, char *argv[]) {
     std::cout << (i+1) << "\t";
     std::cout << timer() << "\t";
     std::cout << colony->get_best_tour_length() << "\t";
-    std::cout << colony->get_best_tour_length_in_iteration();
-    if(stagnation_measure != AntColonyConfiguration::STAG_NONE) {
-      std::cout << colony->get_stagnation_measure();
+    std::cout << colony->get_best_tour_length_in_iteration() << "\t";
+
+    if(stagnation_measure == STAG_VARIATION_COEFFICIENT) {
+      std::cout << colony->get_variation_coefficient();
+    }
+
+    if(stagnation_measure == STAG_LAMBDA_BRANCHING_FACTOR) {
+      std::cout << colony->get_lambda_branching_factor();
     }
 
     if(print_tour_flag) {
