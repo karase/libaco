@@ -62,8 +62,11 @@ double&nbsp;</td><td class="memItemRight" valign="bottom"><b>get_best_tour_lengt
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="ac831365482977d9ed7ca081a1186721"></a><!-- doxytag: member="AntColony::get_best_tour_length_in_iteration_no_ls" ref="ac831365482977d9ed7ca081a1186721" args="()" -->
 double&nbsp;</td><td class="memItemRight" valign="bottom"><b>get_best_tour_length_in_iteration_no_ls</b> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="e54c224b8a7d28dfeed617aae34a8ab7"></a><!-- doxytag: member="AntColony::get_stagnation_measure" ref="e54c224b8a7d28dfeed617aae34a8ab7" args="()" -->
-double&nbsp;</td><td class="memItemRight" valign="bottom"><b>get_stagnation_measure</b> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="4a0be6c6648a4cea87527ea6300cba3f"></a><!-- doxytag: member="AntColony::get_variation_coefficient" ref="4a0be6c6648a4cea87527ea6300cba3f" args="()" -->
+double&nbsp;</td><td class="memItemRight" valign="bottom"><b>get_variation_coefficient</b> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="ec6fb957b6b4f5bcad9cf656c653c7ae"></a><!-- doxytag: member="AntColony::get_lambda_branching_factor" ref="ec6fb957b6b4f5bcad9cf656c653c7ae" args="()" -->
+double&nbsp;</td><td class="memItemRight" valign="bottom"><b>get_lambda_branching_factor</b> ()</td></tr>
 
 <tr><td colspan="2"><br><h2>Protected Attributes</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="8caa008736aa07ffd2b7125407126db8"></a><!-- doxytag: member="AntColony::pheromones_" ref="8caa008736aa07ffd2b7125407126db8" args="" -->
@@ -75,14 +78,8 @@ double&nbsp;</td><td class="memItemRight" valign="bottom"><b>alpha_</b></td></tr
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="ff9c86f0fcbc70960925ad6bdda32f0d"></a><!-- doxytag: member="AntColony::beta_" ref="ff9c86f0fcbc70960925ad6bdda32f0d" args="" -->
 double&nbsp;</td><td class="memItemRight" valign="bottom"><b>beta_</b></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="06fe6c9f0196c12047f2a4e00dce765d"></a><!-- doxytag: member="AntColony::compute_stagnation_measure_" ref="06fe6c9f0196c12047f2a4e00dce765d" args="" -->
-bool&nbsp;</td><td class="memItemRight" valign="bottom"><b>compute_stagnation_measure_</b></td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="9f9429937c3625fc96a4920e18a1af52"></a><!-- doxytag: member="AntColony::local_search_" ref="9f9429937c3625fc96a4920e18a1af52" args="" -->
-LocalSearchType&nbsp;</td><td class="memItemRight" valign="bottom"><b>local_search_</b></td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="79a6dfde49b76bc3e74e7eacdfea5d66"></a><!-- doxytag: member="AntColony::stagnation_measure_" ref="79a6dfde49b76bc3e74e7eacdfea5d66" args="" -->
-double&nbsp;</td><td class="memItemRight" valign="bottom"><b>stagnation_measure_</b></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="ee93d0421e0663a85a2c8ef5570aee7e"></a><!-- doxytag: member="AntColony::local_search_type_" ref="ee93d0421e0663a85a2c8ef5570aee7e" args="" -->
+AntColonyConfiguration::LocalSearchType&nbsp;</td><td class="memItemRight" valign="bottom"><b>local_search_type_</b></td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="a2fe90465f65ef4ed374ed2c58049d9a"></a><!-- doxytag: member="AntColony::ants_" ref="a2fe90465f65ef4ed374ed2c58049d9a" args="" -->
 std::list&lt; T &gt; *&nbsp;</td><td class="memItemRight" valign="bottom"><b>ants_</b></td></tr>
@@ -112,7 +109,7 @@ Virtual base class of all Ant Colony variants.
 Ant Colony variants differ in the way ants construct their tours and how pheromone values are updated. All other logic is handled by this virtual base class. <hr>The documentation for this class was generated from the following file:<ul>
 <li>include/libaco/<a class="el" href="ants_8h-source.html">ants.h</a></ul>
 </div>
-<hr size="1"><address style="text-align: right;"><small>Generated on Mon Jul 28 14:46:47 2008 for libaco by&nbsp;
+<hr size="1"><address style="text-align: right;"><small>Generated on Mon Mar 2 13:09:43 2009 for libaco by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.5.6 </small></address>
 </body>
