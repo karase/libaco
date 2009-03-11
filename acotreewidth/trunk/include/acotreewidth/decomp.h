@@ -321,27 +321,27 @@ template <class T> class HyperTreeDecompProblem : public DecompProblem<T> {
       return edges;
     }
 
-    std::map<unsigned int,double> get_feasible_start_vertices() {
-      std::map<unsigned int,double> vertices;
-      for(unsigned int i=0;i<DecompProblem<T>::graph_->number_of_vertices();i++) {
-        std::vector<unsigned int> clique = DecompProblem<T>::elim_graph_->get_neighbours(i);
-        clique.push_back(i);
-        vertices[i] = 1.0 / compute_greedy_hyperedge_covering(clique).size();
-      }
-      return vertices;
-    }
+    //std::map<unsigned int,double> get_feasible_start_vertices() {
+    //  std::map<unsigned int,double> vertices;
+    //  for(unsigned int i=0;i<DecompProblem<T>::graph_->number_of_vertices();i++) {
+    //    std::vector<unsigned int> clique = DecompProblem<T>::elim_graph_->get_neighbours(i);
+    //    clique.push_back(i);
+    //    vertices[i] = 1.0 / compute_greedy_hyperedge_covering(clique).size();
+    //  }
+    //  return vertices;
+    //}
 
-    std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex) {
-      if(DecompProblem<T>::use_heuristic_) {
-        std::map<unsigned int,double>::iterator it;
-        for (it=DecompProblem<T>::feasible_vertices_.begin();it!=DecompProblem<T>::feasible_vertices_.end();it++) {
-          std::vector<unsigned int> clique = DecompProblem<T>::elim_graph_->get_neighbours((*it).first);
-          clique.push_back((*it).first);
-          DecompProblem<T>::feasible_vertices_[(*it).first] = 1.0 / compute_greedy_hyperedge_covering(clique).size();
-        }
-      }
-      return DecompProblem<T>::feasible_vertices_;
-    }
+    //std::map<unsigned int,double> get_feasible_neighbours(unsigned int vertex) {
+    //  if(DecompProblem<T>::use_heuristic_) {
+    //    std::map<unsigned int,double>::iterator it;
+    //    for (it=DecompProblem<T>::feasible_vertices_.begin();it!=DecompProblem<T>::feasible_vertices_.end();it++) {
+    //      std::vector<unsigned int> clique = DecompProblem<T>::elim_graph_->get_neighbours((*it).first);
+    //      clique.push_back((*it).first);
+    //      DecompProblem<T>::feasible_vertices_[(*it).first] = 1.0 / compute_greedy_hyperedge_covering(clique).size();
+    //    }
+    //  }
+    //  return DecompProblem<T>::feasible_vertices_;
+    //}
 };
 
 class FileNotFoundException : public std::exception {
