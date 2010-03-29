@@ -100,7 +100,7 @@ template<class T> class ValueExtractor
             int valuesRead = 0;
             while ( is.good() ) 
 			{
-                if ( is.peek() != EOF )
+                if ( !is.eof() )
                     is >> _value;
                 else
                     break;
