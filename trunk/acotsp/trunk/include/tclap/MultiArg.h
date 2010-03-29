@@ -100,7 +100,7 @@ class ValueExtractor
     
 			while ( is.good() ) 
 			{
-				if ( is.peek() != EOF )
+				if ( !is.eof() )
 					is >> temp; 
 				else
 					break;
